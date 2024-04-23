@@ -42,3 +42,25 @@ mp_dataframe <- as.data.frame(mp)
 write.csv(mp_dataframe, "./Data/mp.csv", row.names=FALSE)
 
 # Loading votings data #TODO
+sitting <- 1
+url <- paste0(API_URL, "/sejm/term", TERM, "/votings/")
+res <- GET(paste0(url,sitting))
+
+while (rawToChar(res$content) != "[]") {
+  number_of_votings <- dim(fromJSON(rawToChar(res$content)))[1]
+
+  for (voting in 1:number_of_votings) {
+    vot_url <- paste0(url, sitting, "/", voting)
+    res <- GET(vot_url)
+    if (fromJSON(rawToChar(res$content) != "ON_LIST")) {
+      vot <- fromJSON(rawToChar(res$content))
+      voting_dataframe <- as.data.frame(vot)
+      filename <- paste0("./Data/votings/sitting_", sitting, "_voting_", voting, ".csv" )
+      write.csv(vot, filename, row.names=FALSE)
+    }
+  }
+  
+  sitting = sitting + 1
+  res <- GET(paste0(url,sitting))
+}
+
