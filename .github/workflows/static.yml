@@ -29,8 +29,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      -name: Change name
-        run: mv Members_of_Pairlament.html index.html
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
