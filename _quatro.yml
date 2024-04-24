@@ -1,3 +1,3 @@
 project:
     type: website
-    output-dir: Members_of_Pairlament_files
+    output-dir: docs
