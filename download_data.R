@@ -11,21 +11,20 @@ library(lubridate)
 API_URL <- "https://api.sejm.gov.pl"
 TERM <- "10"
 
-# Test run
-#PATH = "/sejm/term"
-#url = paste0(API_URL, PATH, TERM)
-#res = GET(url)
-#data  = fromJSON(rawToChar(res$content))
-#data
-
+check_response <- function(res, text) {
+  # Gets: response from GET, error message
+  # Exist with error if status != 200
+  if (res$status != 200) {
+    stop(paste0("Error code: ", text))
+  }
+}
 
 # Loading clubs data
 url <- paste0(API_URL, "/sejm/term", TERM, "/clubs")
 
 res <- GET(url)
-if (res$status != 200) {
-  stop("Error loading clubs data")
-}
+check_response(res, "While downloading clubs")
+
 clubs <- fromJSON(rawToChar(res$content))
 clubs_dataframe <- as.data.frame(clubs)
 write.csv(clubs_dataframe, "./Data/clubs.csv", row.names=FALSE)
@@ -34,9 +33,8 @@ write.csv(clubs_dataframe, "./Data/clubs.csv", row.names=FALSE)
 # Loading MP data
 url <- paste0(API_URL, "/sejm/term", TERM, "/MP")
 res <- GET(url)
-if (res$status != 200) {
-  stop("Error loading MP data")
-}
+check_response(res, "While downloading MP")
+
 mp <- fromJSON(rawToChar(res$content))
 mp_dataframe <- as.data.frame(mp)
 write.csv(mp_dataframe, "./Data/mp.csv", row.names=FALSE)
@@ -45,6 +43,7 @@ write.csv(mp_dataframe, "./Data/mp.csv", row.names=FALSE)
 sitting <- 1
 url <- paste0(API_URL, "/sejm/term", TERM, "/votings/")
 res <- GET(paste0(url,sitting))
+check_response(res, paste("While downloading votings, sitting:", sitting))
 
 while (rawToChar(res$content) != "[]") {
   number_of_votings <- dim(fromJSON(rawToChar(res$content)))[1]
@@ -52,15 +51,21 @@ while (rawToChar(res$content) != "[]") {
   for (voting in 1:number_of_votings) {
     vot_url <- paste0(url, sitting, "/", voting)
     res <- GET(vot_url)
-    if (fromJSON(rawToChar(res$content) != "ON_LIST")) {
-      vot <- fromJSON(rawToChar(res$content))
-      voting_dataframe <- as.data.frame(vot)
-      filename <- paste0("./Data/votings/sitting_", sitting, "_voting_", voting, ".csv" )
-      write.csv(vot, filename, row.names=FALSE)
+    check_response(res, paste("While downloading votings, sitting:", sitting, "voting:", voting))
+    vot <- fromJSON(rawToChar(res$content))
+    
+    if (fromJSON(rawToChar(res$content))$kind == "ON_LIST") {
+      votes <- vot$votes
+      voting_options <- vot$votingOptions
+      names(votes$listVotes) <- voting_options$option
+      vot <- votes
     }
+    voting_dataframe <- as.data.frame(vot)
+    filename <- paste0("./Data/votings/sitting_", sitting, "_voting_", voting, ".csv" )
+    write.csv(voting_dataframe, filename, row.names=FALSE)
   }
   
   sitting = sitting + 1
   res <- GET(paste0(url,sitting))
+  check_response(res, paste("While downloading votings, sitting:", sitting))
 }
-
