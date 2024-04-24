@@ -10,10 +10,13 @@ format:
 
 # Loading the Data
 ```{R}
+# Libraries
 library(knitr)
 library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 library(ggplot2)
+
+# Data
 mp_path <- "./Data/mp.csv"
 clubs_path <- "./Data/clubs.csv"
 mp <- read.csv(mp_path)
