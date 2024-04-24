@@ -20,6 +20,7 @@ options(dplyr.summarise.inform = FALSE)
 library(ggplot2)
 library(treemapify)
 library(DT)
+library(lubridate, warn.conflicts = FALSE)
 
 # Data
 mp_path <- "./Data/mp.csv"
@@ -106,6 +107,11 @@ mp <- mp %>%
   select(!c(firstLastName, lastFirstName))
 ```
 
+We also change `birthDate` to the date type
+```{R}
+mp <- mp %>% mutate(birthDate = as_date(birthDate))
+```
+
 # Translating the data
 
 # What is the club distribution in the parliament?
@@ -174,8 +180,17 @@ ggplot(mp, aes(area=numberOfVotes, fill=club,
 ```{R}
 ```
 
-# Visualisation using calendar for birthdays
+# Visualisation using calendar for birthdays # DO IT BETTER
 ```{R}
+birthdays_per_day <- mp %>% group_by(month = month(birthDate), day = (birthDate)) %>% summarise(number=n())
+
+#ggplot(birthdays_per_day, aes(x=wday, y=week)) +
+#  geom_tile(aes(fill = number)) +
+#  facet_wrap(~month, scales = "free") +
+#  scale_y_reverse() +
+#  theme_minimal() +
+#  scale_x_discrete(position = "top") 
+#calendarHeat(as_date(birthdays_per_day$month, birthdays_per_day$day), birthdays_per_day$number)
 ```
 
 
