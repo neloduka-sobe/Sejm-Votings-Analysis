@@ -6,6 +6,9 @@ format:
   html:
     code-tools: true
     code-fold: true
+number-sections: true
+editor: visual
+include-after-body: "footer.html"
 ---
 
 # Loading the Data
@@ -15,6 +18,8 @@ library(knitr)
 library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 library(ggplot2)
+library(treemapify)
+library(DT)
 
 # Data
 mp_path <- "./Data/mp.csv"
@@ -25,11 +30,12 @@ clubs <- read.csv(clubs_path)
 
 # Background of the data
 This data has been downloaded from [API of Polish Parliament](https://api.sejm.gov.pl/), to analyze the general statistics considering Polish MPs, and to give an insights on political processes of the Polish political body.
+
 # Description of the Data
 
 ## Members of Parliament
 ```{R}
-kable(head(mp))
+datatable(mp, filter = "top")
 ```
 
 **`active`**: Determines if MP is an active MP
@@ -60,7 +66,7 @@ kable(head(mp))
 
 **`numberOfVotes`**: Number of votes for the MP
 
-**`profession`**: Prodession of the MP
+**`profession`**: Profession of the MP
 
 **`secondName`**: Second name
 
@@ -72,7 +78,7 @@ kable(head(mp))
 
 ## Clubs
 ```{R}
-kable(head(clubs))
+kable(clubs)
 ```
 **`email`**: E-mail of the club
 
@@ -92,14 +98,12 @@ We would drop phone, email, and fax of the club, as it is data, we don't need fo
 ```{R}
 clubs <- clubs %>% 
   select(id, membersCount, name)
-names(clubs)
 ```
 
 We would also drop `firstLastName`, and `lastFirstName`, as those are redundant in respect to `firstName`, `secondName`, and `lastName`
 ```{R}
 mp <- mp %>% 
   select(!c(firstLastName, lastFirstName))
-names(mp)
 ```
 
 # Translating the data #TODO
@@ -137,6 +141,23 @@ ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) +
   facet_wrap(~voivodeship)
 ```
 
+# How does the distribution of education level of the Polish MPs look like?
+```{R}
+ggplot(mp, aes(x=educationLevel)) + geom_bar()
+```
 
+# How does the distribution of professions of the Polish MPs look like?
+```{R}
+```
+
+# Are there any inactive MP? What are the causes of it?
+```{R}
+```
+
+# Visualization of number of votes per MP using treemap
+
+```{R, echo=FALSE, warning=FALSE, out.width="100%"}
+ggplot(mp, aes(area=numberOfVotes, fill=club, label=paste(firstName, secondName, lastName), subgroup=club)) + geom_treemap() + geom_treemap_subgroup_border() + geom_treemap_text(min.size=1) + theme_void()
+```
 
 
