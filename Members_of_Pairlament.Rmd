@@ -66,6 +66,7 @@ kable(head(mp))
 **`inactiveCause`**: The cause why MP is inactive (if inactive)
 
 **`waiverDesc`**: Description of the cause why MP is inactive (if inactive)
+
 ## Clubs
 ```{R}
 kable(head(clubs))
@@ -86,13 +87,15 @@ kable(head(clubs))
 
 We would drop phone, email, and fax of the club, as it is data, we don't need for the statistical analysis
 ```{R}
-clubs <- clubs %>% select(id, membersCount, name)
+clubs <- clubs %>% 
+  select(id, membersCount, name)
 names(clubs)
 ```
 
 We would also drop `firstLastName`, and `lastFirstName`, as those are redundant in respect to `firstName`, `secondName`, and `lastName`
 ```{R}
-mp <- mp %>% select(!c(firstLastName, lastFirstName))
+mp <- mp %>% 
+  select(!c(firstLastName, lastFirstName))
 names(mp)
 ```
 
@@ -100,7 +103,9 @@ names(mp)
 
 # What is the club distribution in the parliament?
 ```{R}
-club_distribution <- mp %>% group_by(club) %>% summarise(number_of_members = n()) %>% arrange(desc(number_of_members))
+club_distribution <- mp %>% group_by(club) %>% 
+  summarise(number_of_members = n()) %>% 
+  arrange(desc(number_of_members))
 kable(club_distribution)
 ```
 
@@ -108,14 +113,25 @@ As we can see from the table the biggest club in the parliament right now is PiS
 
 # What is the distribution of rhe MPs per voivodeships?
 ```{R}
-voivodeship_distribution <- mp %>% group_by(voivodeship, club) %>% summarise(number_of_members = n()) %>% arrange(voivodeship, desc(number_of_members))
-per_voivodeship <- voivodeship_distribution %>% group_by(voivodeship) %>% summarise(number_of_members = sum(number_of_members))
+voivodeship_distribution <- mp %>% 
+  group_by(voivodeship, club) %>% 
+  summarise(number_of_members = n()) %>% 
+  arrange(voivodeship, desc(number_of_members))
+
+per_voivodeship <- voivodeship_distribution %>% 
+  group_by(voivodeship) %>% 
+  summarise(number_of_members = sum(number_of_members))
+
 ggplot(per_voivodeship, aes(x="", y=number_of_members, fill=voivodeship)) + geom_bar(stat="identity") + coord_polar("y")
 ```
 
 # What is the distribution of rhe MPs per voivodeship with regard to the club?
 ```{R}
-ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) + geom_bar(position="dodge", stat="identity") + scale_x_discrete(labels = NULL, breaks = NULL) + labs(x = NULL) + facet_wrap(~voivodeship)
+ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) + 
+  geom_bar(position="dodge", stat="identity") + 
+  scale_x_discrete(labels = NULL, breaks = NULL) + 
+  labs(x = NULL) + 
+  facet_wrap(~voivodeship)
 ```
 
 
