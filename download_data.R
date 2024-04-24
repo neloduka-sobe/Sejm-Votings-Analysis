@@ -39,7 +39,7 @@ mp <- fromJSON(rawToChar(res$content))
 mp_dataframe <- as.data.frame(mp)
 write.csv(mp_dataframe, "./Data/mp.csv", row.names=FALSE)
 
-# Loading votings data #TODO
+# Loading votings data
 sitting <- 1
 url <- paste0(API_URL, "/sejm/term", TERM, "/votings/")
 res <- GET(paste0(url,sitting))

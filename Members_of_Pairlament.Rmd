@@ -1,0 +1,82 @@
+---
+title: "Analysis of Members of Polish Parliament"
+subtitle: "Based on data from api.sejm.gov.pl"
+author: "Borys Łangowicz (neloduka_sobe)"
+format:
+  html:
+    code-tools: true
+    code-fold: true
+---
+
+# Loading the Data
+```{R}
+library(knitr)
+mp_path <- "./Data/mp.csv"
+clubs_path <- "./Data/clubs.csv"
+mp <- read.csv(mp_path)
+clubs <- read.csv(clubs_path)
+```
+
+# Background of the data
+This data has been downloaded from [API of Polish Parliament](https://api.sejm.gov.pl/), to analyze the general statistics considering Polish MPs, and to give an insights on political processes of the Polish political body.
+# Description of the Data
+
+## Members of Parliament
+```{R}
+kable(head(mp))
+```
+
+**`active`**: Determines if MP is an active MP
+
+**`birthDate`**: Date of birth
+
+**`birthLocation`**: Location of birth
+
+**`club`**: Club membership
+
+**`districtName`**: Name of the district of the MP
+
+**`districtNum`**: Number of the district of the MP
+
+**`educationLevel`**: Education level of the MP
+
+**`email`**: E-mail to the MP
+
+**`firstLastName`**: First and last name of the MP
+
+**`firstName`**: First name of the MP
+
+**`id`**: Id of the MP
+
+**`lastFirstName`**: Last and first name of the MP
+
+**`lastName`**: Last name of the MP
+
+**`numberOfVotes`**: Number of votes for the MP
+
+**`profession`**: Prodession of the MP
+
+**`secondName`**: Second name
+
+**`voivodeship`**: Voivodeship of the MP
+
+**`inactiveCause`**: The cause why MP is inactive (if inactive)
+
+**`waiverDesc`**: Description of the cause why MP is inactive (if inactive)
+## Clubs
+```{R}
+kable(head(clubs))
+```
+**`email`**: E-mail of the club
+
+**`fax`**: Fax of the club
+
+**`id`**: Id of the club
+
+**`membersCount`**: Number of members
+
+**`name`**: Name of the club
+
+**`phone`**: Phone number of the club
+
+# Cleaning/Translating the Data
