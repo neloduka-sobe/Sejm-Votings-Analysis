@@ -106,7 +106,7 @@ mp <- mp %>%
   select(!c(firstLastName, lastFirstName))
 ```
 
-# Translating the data #TODO
+# Translating the data
 
 # What is the club distribution in the parliament?
 ```{R}
@@ -118,7 +118,7 @@ kable(club_distribution)
 
 As we can see from the table the biggest club in the parliament right now is PiS with 192 MPs.
 
-# What is the distribution of rhe MPs per voivodeships?
+# What is the distribution of the MPs per voivodeships?
 ```{R}
 voivodeship_distribution <- mp %>% 
   group_by(voivodeship, club) %>% 
@@ -132,7 +132,7 @@ per_voivodeship <- voivodeship_distribution %>%
 ggplot(per_voivodeship, aes(x="", y=number_of_members, fill=voivodeship)) + geom_bar(stat="identity") + coord_polar("y")
 ```
 
-# What is the distribution of rhe MPs per voivodeship with regard to the club?
+# What is the distribution of the MPs per voivodeship with regard to the club?
 ```{R}
 ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) + 
   geom_bar(position="dodge", stat="identity") + 
@@ -152,12 +152,28 @@ ggplot(mp, aes(x=educationLevel)) + geom_bar()
 
 # Are there any inactive MP? What are the causes of it?
 ```{R}
+not_active <- mp %>% filter(!active) %>% select(firstName, secondName, lastName, club, inactiveCause, waiverDesc)
+kable(not_active)
 ```
 
 # Visualization of number of votes per MP using treemap
 
 ```{R, echo=FALSE, warning=FALSE, out.width="100%"}
+# Remove NA #TODO
 ggplot(mp, aes(area=numberOfVotes, fill=club, label=paste(firstName, secondName, lastName), subgroup=club)) + geom_treemap() + geom_treemap_subgroup_border() + geom_treemap_text(min.size=1) + theme_void()
 ```
 
+# Visualization using map for districts of MPs
+```{R}
+```
 
+# Visualisation using calendar for birthdays
+```{R}
+```
+
+
+---
+
+# Introducing Voting Data
+```{R}
+```
