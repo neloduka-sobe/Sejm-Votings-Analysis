@@ -96,13 +96,13 @@ kable(clubs)
 
 We would drop phone, email, and fax of the club, as it is data, we don't need for the statistical analysis
 ```{R}
-clubs <- clubs %>% 
+clubs <- clubs %>%
   select(id, membersCount, name)
 ```
 
 We would also drop `firstLastName`, and `lastFirstName`, as those are redundant in respect to `firstName`, `secondName`, and `lastName`
 ```{R}
-mp <- mp %>% 
+mp <- mp %>%
   select(!c(firstLastName, lastFirstName))
 ```
 
@@ -110,8 +110,8 @@ mp <- mp %>%
 
 # What is the club distribution in the parliament?
 ```{R}
-club_distribution <- mp %>% group_by(club) %>% 
-  summarise(number_of_members = n()) %>% 
+club_distribution <- mp %>% group_by(club) %>%
+  summarise(number_of_members = n()) %>%
   arrange(desc(number_of_members))
 kable(club_distribution)
 ```
@@ -120,13 +120,13 @@ As we can see from the table the biggest club in the parliament right now is PiS
 
 # What is the distribution of the MPs per voivodeships?
 ```{R}
-voivodeship_distribution <- mp %>% 
-  group_by(voivodeship, club) %>% 
-  summarise(number_of_members = n()) %>% 
+voivodeship_distribution <- mp %>%
+  group_by(voivodeship, club) %>%
+  summarise(number_of_members = n()) %>%
   arrange(voivodeship, desc(number_of_members))
 
-per_voivodeship <- voivodeship_distribution %>% 
-  group_by(voivodeship) %>% 
+per_voivodeship <- voivodeship_distribution %>%
+  group_by(voivodeship) %>%
   summarise(number_of_members = sum(number_of_members))
 
 ggplot(per_voivodeship, aes(x="", y=number_of_members, fill=voivodeship)) + geom_bar(stat="identity") + coord_polar("y")
@@ -134,16 +134,17 @@ ggplot(per_voivodeship, aes(x="", y=number_of_members, fill=voivodeship)) + geom
 
 # What is the distribution of the MPs per voivodeship with regard to the club?
 ```{R}
-ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) + 
-  geom_bar(position="dodge", stat="identity") + 
-  scale_x_discrete(labels = NULL, breaks = NULL) + 
-  labs(x = NULL) + 
+ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) +
+  geom_bar(position="dodge", stat="identity") +
+  scale_x_discrete(labels = NULL, breaks = NULL) +
+  labs(x = NULL) +
   facet_wrap(~voivodeship)
 ```
 
 # How does the distribution of education level of the Polish MPs look like?
 ```{R}
-ggplot(mp, aes(x=educationLevel)) + geom_bar()
+ggplot(mp, aes(x=educationLevel)) +
+  geom_bar()
 ```
 
 # How does the distribution of professions of the Polish MPs look like?
@@ -152,15 +153,21 @@ ggplot(mp, aes(x=educationLevel)) + geom_bar()
 
 # Are there any inactive MP? What are the causes of it?
 ```{R}
-not_active <- mp %>% filter(!active) %>% select(firstName, secondName, lastName, club, inactiveCause, waiverDesc)
+not_active <- mp %>% filter(!active) %>%
+  select(firstName, secondName, lastName, club, inactiveCause, waiverDesc)
 kable(not_active)
 ```
 
 # Visualization of number of votes per MP using treemap
 
-```{R, echo=FALSE, warning=FALSE, out.width="100%"}
+```{R, out.width="100%"}
 # Remove NA #TODO
-ggplot(mp, aes(area=numberOfVotes, fill=club, label=paste(firstName, secondName, lastName), subgroup=club)) + geom_treemap() + geom_treemap_subgroup_border() + geom_treemap_text(min.size=1) + theme_void()
+ggplot(mp, aes(area=numberOfVotes, fill=club, 
+               label=paste(firstName, secondName, lastName), subgroup=club)) + 
+  geom_treemap() +
+  geom_treemap_subgroup_border() +
+  geom_treemap_text(min.size=1) +
+  theme_void()
 ```
 
 # Visualization using map for districts of MPs
