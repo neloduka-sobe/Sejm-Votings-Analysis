@@ -12,6 +12,7 @@ include-after-body: "footer.html"
 ---
 
 # Loading the Data
+
 ```{R}
 # Libraries
 library(knitr)
@@ -30,11 +31,13 @@ clubs <- read.csv(clubs_path)
 ```
 
 # Background of the data
+
 This data has been downloaded from [API of Polish Parliament](https://api.sejm.gov.pl/), to analyze the general statistics considering Polish MPs, and to give an insights on political processes of the Polish political body.
 
 # Description of the Data
 
 ## Members of Parliament
+
 ```{R}
 datatable(mp, filter = "top")
 ```
@@ -78,9 +81,11 @@ datatable(mp, filter = "top")
 **`waiverDesc`**: Description of the cause why MP is inactive (if inactive)
 
 ## Clubs
+
 ```{R}
 kable(clubs)
 ```
+
 **`email`**: E-mail of the club
 
 **`fax`**: Fax of the club
@@ -96,18 +101,21 @@ kable(clubs)
 # Cleaning the Data
 
 We would drop phone, email, and fax of the club, as it is data, we don't need for the statistical analysis
+
 ```{R}
 clubs <- clubs %>%
   select(id, membersCount, name)
 ```
 
 We would also drop `firstLastName`, and `lastFirstName`, as those are redundant in respect to `firstName`, `secondName`, and `lastName`
+
 ```{R}
 mp <- mp %>%
   select(!c(firstLastName, lastFirstName))
 ```
 
 We also change `birthDate` to the date type
+
 ```{R}
 mp <- mp %>%
   mutate(birthDate = as_date(birthDate))
@@ -116,6 +124,7 @@ mp <- mp %>%
 # Translating the data
 
 # What is the club distribution in the parliament?
+
 ```{R}
 club_distribution <- mp %>% group_by(club) %>%
   summarise(number_of_members = n()) %>%
@@ -126,6 +135,7 @@ kable(club_distribution)
 As we can see from the table the biggest club in the parliament right now is PiS with 192 MPs.
 
 # What is the distribution of the MPs per voivodeships?
+
 ```{R}
 voivodeship_distribution <- mp %>%
   group_by(voivodeship, club) %>%
@@ -140,6 +150,7 @@ ggplot(per_voivodeship, aes(x="", y=number_of_members, fill=voivodeship)) + geom
 ```
 
 # What is the distribution of the MPs per voivodeship with regard to the club?
+
 ```{R}
 ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) +
   geom_bar(position="dodge", stat="identity") +
@@ -149,12 +160,14 @@ ggplot(voivodeship_distribution, aes(fill=club, y=number_of_members, x=club)) +
 ```
 
 # How does the distribution of education level of the Polish MPs look like?
+
 ```{R}
 ggplot(mp, aes(x=educationLevel)) +
   geom_bar()
 ```
 
 # How does the distribution of professions of the Polish MPs look like?
+
 ```{R}
 professions <- mp %>%
   group_by(profession) %>%
@@ -170,6 +183,7 @@ ggplot(p, aes(x=profession, y=number)) +
 ```
 
 # Are there any inactive MP? What are the causes of it?
+
 ```{R}
 not_active <- mp %>% filter(!active) %>%
   select(firstName, secondName, lastName, club, inactiveCause, waiverDesc)
@@ -188,15 +202,22 @@ ggplot(mp, aes(area=numberOfVotes, fill=club,
   theme_void()
 ```
 
-# Boxplot of votes per MP
+# What is the distribution of number of votes per club?
+
 ```{R}
+ggplot(mp, aes(x=club, y=numberOfVotes, fill=club)) +
+  geom_boxplot() +
+  theme_classic() +
+  theme(legend.position="none")
 ```
 
 # Visualization using map for districts of MPs
+
 ```{R}
 ```
 
-# Visualisation using calendar for birthdays # DO IT BETTER
+# Visualisation using calendar for birthdays \# DO IT BETTER
+
 ```{R}
 birthdays_per_day <- mp %>%
   group_by(month = month(birthDate), day = (birthDate)) %>%
@@ -211,9 +232,9 @@ birthdays_per_day <- mp %>%
 #calendarHeat(as_date(birthdays_per_day$month, birthdays_per_day$day), birthdays_per_day$number)
 ```
 
-
----
+------------------------------------------------------------------------
 
 # Introducing Voting Data
+
 ```{R}
 ```
