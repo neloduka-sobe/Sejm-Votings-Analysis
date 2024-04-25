@@ -109,7 +109,8 @@ mp <- mp %>%
 
 We also change `birthDate` to the date type
 ```{R}
-mp <- mp %>% mutate(birthDate = as_date(birthDate))
+mp <- mp %>%
+  mutate(birthDate = as_date(birthDate))
 ```
 
 # Translating the data
@@ -155,6 +156,17 @@ ggplot(mp, aes(x=educationLevel)) +
 
 # How does the distribution of professions of the Polish MPs look like?
 ```{R}
+professions <- mp %>%
+  group_by(profession) %>%
+  summarize(number = n()) %>%
+  filter(!is.na(profession)) %>%
+  arrange(desc(number))
+datatable(professions, filter = "top")
+
+p <- professions %>% filter(number > 1)
+ggplot(p, aes(x=profession, y=number)) +
+  geom_segment(aes(x=profession, xend=profession, y=0, yend=number)) +
+  theme(axis.text.x = element_text(size = 8, angle = 45, hjust = 1))
 ```
 
 # Are there any inactive MP? What are the causes of it?
@@ -176,13 +188,19 @@ ggplot(mp, aes(area=numberOfVotes, fill=club,
   theme_void()
 ```
 
+# Boxplot of votes per MP
+```{R}
+```
+
 # Visualization using map for districts of MPs
 ```{R}
 ```
 
 # Visualisation using calendar for birthdays # DO IT BETTER
 ```{R}
-birthdays_per_day <- mp %>% group_by(month = month(birthDate), day = (birthDate)) %>% summarise(number=n())
+birthdays_per_day <- mp %>%
+  group_by(month = month(birthDate), day = (birthDate)) %>%
+  summarise(number=n())
 
 #ggplot(birthdays_per_day, aes(x=wday, y=week)) +
 #  geom_tile(aes(fill = number)) +
