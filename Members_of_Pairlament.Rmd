@@ -193,8 +193,8 @@ kable(not_active)
 # Visualization of number of votes per MP using treemap
 
 ```{R, out.width="100%"}
-# Remove NA #TODO
-ggplot(mp, aes(area=numberOfVotes, fill=club, 
+treemap <- mp %>% mutate(secondName = ifelse(is.na(secondName), "", secondName))
+ggplot(treemap, aes(area=numberOfVotes, fill=club, 
                label=paste(firstName, secondName, lastName), subgroup=club)) + 
   geom_treemap() +
   geom_treemap_subgroup_border() +
