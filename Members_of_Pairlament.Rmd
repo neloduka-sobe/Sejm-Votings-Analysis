@@ -13,7 +13,7 @@ include-after-body: "footer.html"
 
 # Loading the Data
 
-```{R}
+```{R, message=FALSE}
 # Libraries
 library(knitr)
 library(dplyr, warn.conflicts = FALSE)
@@ -217,7 +217,10 @@ ggplot(mp, aes(x=club, y=numberOfVotes, fill=club)) +
 # Visualization using map for districts of MPs
 
 ```{R}
-#TODO
+# Use API to get coordinates
+# Mutate dataset
+# Use ggplot for plotting the data
+# TODO
 ```
 
 # Visualisation using calendar for birthdays
@@ -249,6 +252,10 @@ calendR(year = 2024,
 
 # Introducing Voting Data
 
+The Polish Parliament API provides the data on all the voting, including the votes of a single MP. It provides a great opportunity to statistically analyze, and visualize the processes behind most important decisions in Poland.
+
+# Loading the Data
+
 ```{R}
-#TODO
+
 ```
