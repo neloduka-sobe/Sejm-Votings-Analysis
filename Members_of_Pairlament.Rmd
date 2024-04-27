@@ -253,7 +253,7 @@ calendR(year = 2024,
 
 # Introducing Voting Data
 
-The Polish Parliament API provides the data on all the voting, including the votes of a single MP. It provides a great opportunity to statistically analyze, and visualize the processes behind most important decisions in Poland.
+The Polish Parliament API provides the data on all the voting, including the votes of a single MP. It provides a great opportunity to statistically analyze, and visualize the processes behind most important decisions in Poland.
 
 # Loading the Data
 
@@ -275,10 +275,9 @@ for (i in on_list_voting_files) {
 
 # Cleaning the data
 
-We are dropping yes column, as it contains number of yes votes, votes.firstName, votes.lastName, votes.secondName, votes.club, term, notParticipating, totalVoted as those data is redundant or is not relevant.
+We are dropping yes column, as it contains number of yes `votes`, `votes.firstName`, `votes.lastName`, `votes.secondName`, `votes.club`, `term`, `notParticipating`, `totalVoted`, and `no` as those data is redundant or is not relevant.
 
 ```{R}
-# How about no? #TODO
 # Yes/No votings
 y_n_votings <- y_n_votings %>%
   select(
@@ -289,7 +288,8 @@ y_n_votings <- y_n_votings %>%
     votes.secondName,
     votes.club,
     term,
-    totalVoted)))
+    totalVoted,
+    no)))
 ```
 
 # Description of the Data
@@ -299,3 +299,28 @@ The dataset after cleaning has the following columns:
 ```{R}
 names(y_n_votings)
 ```
+
+`abstain`: 1 if MP abstained during voting, 0 otherwise
+
+`date`: Date of the voting
+
+`kind`: Type of the voting
+
+`sitting`: Number of sitting
+
+`sittingDay`: Day of the sitting
+
+`title`: Title of the voting
+
+`votes.MP`: ID of the MP
+
+`votes.vote`: Vote of the MP
+
+`votingNumber`: Number of voting
+
+`topic`: Topic of the voting
+
+`description`: Description of the voting
+
+
+Sessions of Polish Parliament are divided into points, and votings. In this data, `title` column regards the point of the session, when `topis`, and `description` regard voting.
