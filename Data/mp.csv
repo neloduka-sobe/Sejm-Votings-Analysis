@@ -243,7 +243,7 @@ TRUE,"1986-11-20","Toruń","Konfederacja","Warszawa",19,"wyższe","Slawomir.Ment
 TRUE,"1958-07-18","Radomsko","PiS","Piotrków Trybunalski",10,"wyższe","Anna.Milczanowska@sejm.pl","Anna Milczanowska","Anna",242,"Milczanowska Anna","Milczanowska",22595,"pracownik administracji samorządowej","Maria","łódzkie",NA,NA
 TRUE,"1989-11-22","Chicago (Usa)","PiS","Siedlce",18,"wyższe","Daniel.Milewski@sejm.pl","Daniel Milewski","Daniel",243,"Milewski Daniel","Milewski",44145,"nauczyciel akademicki, parlamentarzysta, polityk, prawnik","George","mazowieckie",NA,NA
 FALSE,"1954-07-16","Kielce","KO","Opole",21,"wyższe","Rajmund.Miller@sejm.pl","Rajmund Miller","Rajmund",244,"Miller Rajmund","Miller",11835,"lekarz","Tadeusz","opolskie","Zgon","Zmarł"
-TRUE,"1980-08-07","Kraków","KO","Kraków",13,"wyższe","Aleksander.Miszalski@sejm.pl","Aleksander Miszalski","Aleksander",245,"Miszalski Aleksander","Miszalski",29414,"przedsiębiorca prywatny","Jan","małopolskie",NA,NA
+FALSE,"1980-08-07","Kraków","KO","Kraków",13,"wyższe","Aleksander.Miszalski@sejm.pl","Aleksander Miszalski","Aleksander",245,"Miszalski Aleksander","Miszalski",29414,"przedsiębiorca prywatny","Jan","małopolskie","Zrzeczenie","Wybrany na funkcję Prezydenta Miasta Krakowa"
 TRUE,"1968-06-20","Wrocław","PiS","Katowice",31,"wyższe","Mateusz.Morawiecki@sejm.pl","Mateusz Morawiecki","Mateusz",246,"Morawiecki Mateusz","Morawiecki",117064,"polityk","Jakub","śląskie",NA,NA
 TRUE,"1956-12-19","Lubin","PiS","Kalisz",36,"wyższe","Jan.Mosinski@sejm.pl","Jan Mosiński","Jan",247,"Mosiński Jan","Mosiński",7321,"politolog",NA,"wielkopolskie",NA,NA
 TRUE,"1994-05-06","Janów Lubelski","PiS","Lublin",6,"wyższe","Michal.Moskal@sejm.pl","Michał Moskal","Michał",248,"Moskal Michał","Moskal",21958,"prawnik",NA,"lubelskie",NA,NA
@@ -462,3 +462,4 @@ TRUE,"1983-06-11","Warszawa","Lewica","Warszawa",19,"wyższe","Anna.Zukowska@sej
 TRUE,"1973-06-03","Kraśnik","PiS","Lublin",6,"wyższe","Anna.Baluch@sejm.pl","Anna Baluch","Anna",461,"Baluch Anna","Baluch",7686,"urzędnik samorządowy",NA,"lubelskie",NA,NA
 TRUE,"1984-08-30","Inowrocław","KO","Bydgoszcz",4,"wyższe","Magdalena.Losko@sejm.pl","Magdalena Łośko","Magdalena",462,"Łośko Magdalena","Łośko",4864,"pedagog",NA,"kujawsko-pomorskie",NA,NA
 TRUE,"1983-06-15","Ryki","niez.","Chełm",7,"wyższe","Monika.Pawlowska@sejm.pl","Monika Pawłowska","Monika",463,"Pawłowska Monika","Pawłowska",10789,"specjalista do spraw stosunków międzynarodowych","Jolanta","lubelskie",NA,NA
+TRUE,"1961-06-17","Stawiszyn","KO","Kalisz",36,"wyższe","Alicja.Luczak@sejm.pl","Alicja Łuczak","Alicja",464,"Łuczak Alicja","Łuczak",5186,"nauczycielka",NA,"wielkopolskie",NA,NA

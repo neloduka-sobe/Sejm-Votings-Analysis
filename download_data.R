@@ -40,6 +40,8 @@ mp_dataframe <- as.data.frame(mp)
 write.csv(mp_dataframe, "./Data/mp.csv", row.names=FALSE)
 
 # Loading votings data
+ON_LIST <- "_on_list"
+on_list <- FALSE
 sitting <- 1
 url <- paste0(API_URL, "/sejm/term", TERM, "/votings/")
 res <- GET(paste0(url,sitting))
@@ -59,9 +61,13 @@ while (rawToChar(res$content) != "[]") {
       voting_options <- vot$votingOptions
       names(votes$listVotes) <- voting_options$option
       vot <- votes
+      on_list <- TRUE
+    }
+    else {
+      on_list <- FALSE
     }
     voting_dataframe <- as.data.frame(vot)
-    filename <- paste0("./Data/votings/sitting_", sitting, "_voting_", voting, ".csv" )
+    filename <- paste0("./Data/votings/sitting_", sitting, "_voting_", voting, ifelse(on_list, ON_LIST, "") , ".csv" )
     write.csv(voting_dataframe, filename, row.names=FALSE)
   }
   
@@ -69,3 +75,4 @@ while (rawToChar(res$content) != "[]") {
   res <- GET(paste0(url,sitting))
   check_response(res, paste("While downloading votings, sitting:", sitting))
 }
+
