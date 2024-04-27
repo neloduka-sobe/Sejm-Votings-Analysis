@@ -275,7 +275,8 @@ for (i in on_list_voting_files) {
 
 # Cleaning the data
 
-We are dropping yes column, as it contains number of yes `votes`, `votes.firstName`, `votes.lastName`, `votes.secondName`, `votes.club`, `term`, `notParticipating`, `totalVoted`, and `no` as those data is redundant or is not relevant.
+We are dropping yes column, as it contains number of yes `votes`, `votes.firstName`, `votes.lastName`, `votes.secondName`, `votes.club`, `term`, `notParticipating`, `totalVoted`, and `no` as those data is redundant or is not relevant. We would also drop `kind` as it has `R length(unique(y_n_votings$kind))` unique value.
+
 
 ```{R}
 # Yes/No votings
@@ -289,8 +290,10 @@ y_n_votings <- y_n_votings %>%
     votes.club,
     term,
     totalVoted,
-    no)))
+    no,
+    kind)))
 ```
+
 
 # Description of the Data
 
@@ -303,8 +306,6 @@ names(y_n_votings)
 `abstain`: 1 if MP abstained during voting, 0 otherwise
 
 `date`: Date of the voting
-
-`kind`: Type of the voting
 
 `sitting`: Number of sitting
 
@@ -324,3 +325,32 @@ names(y_n_votings)
 
 
 Sessions of Polish Parliament are divided into points, and votings. In this data, `title` column regards the point of the session, when `topis`, and `description` regard voting.
+
+# Translating the data
+#TODO
+
+# Number of votings per sitting, with days distinction
+```{R}
+```
+
+# Votings heatmap on calendar
+```{R}
+```
+
+# Voting heatmap days and time
+```{R}
+```
+
+# Percentage of abstained votes heatmap per club
+```{R}
+```
+
+# Most abstaining MPs
+```{R}
+```
+
+# Least voting MPs
+```{R}
+```
+
+# Deeper statistical analysis of the data (correlations, predicting votes, importancy of a single MP)
