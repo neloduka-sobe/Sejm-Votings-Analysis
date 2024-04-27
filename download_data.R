@@ -75,4 +75,3 @@ while (rawToChar(res$content) != "[]") {
   res <- GET(paste0(url,sitting))
   check_response(res, paste("While downloading votings, sitting:", sitting))
 }
-
