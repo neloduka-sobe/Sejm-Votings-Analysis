@@ -256,6 +256,8 @@ The Polish Parliament API provides the data on all the voting, including the vot
 
 # Loading the Data
 
+on_list_voting_files
+
 ```{R}
 # Move data cleaning to download_data.R
 
@@ -265,14 +267,22 @@ votings_path <- "./Data/votings/"
 # Yes/No votings
 y_n_votings <- read.csv(paste0(votings_path, "y_n_votings.csv"))
 
-# On List votings
-on_list_voting_files <- list.files(votings_path, pattern = "_on_list.csv")
+# On List votings #TODO
+on_list_voting_files <- list.files(votings_path, pattern = "sitting")
+
+for (i in on_list_voting_files) {
+  temp <- read.csv(paste0(votings_path, i))
+  rm(temp)
+}
 ```
 
 # Cleaning the data
 
-```{R}
+We are dropping yes column, as it contains number of yes votes, votes.firstName, votes.lastName, votes.secondName, votes.club, term as those data is redundant.
 
+```{R}
+# Yes/No votings
+head(y_n_votings)
 ```
 
 # Description of the Data
