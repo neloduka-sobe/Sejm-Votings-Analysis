@@ -149,7 +149,8 @@ per_voivodeship <- voivodeship_distribution %>%
   group_by(voivodeship) %>%
   summarise(number_of_members = sum(number_of_members))
 
-ggplot(per_voivodeship, aes(x="", y=number_of_members, fill=voivodeship)) + geom_bar(stat="identity") + coord_polar("y")
+ggplot(per_voivodeship, aes(x="", y=number_of_members, fill=voivodeship)) +
+  geom_bar(stat="identity") + coord_polar("y")
 ```
 
 # What is the distribution of the MPs per voivodeship with regard to the club?
@@ -256,11 +257,7 @@ The Polish Parliament API provides the data on all the voting, including the vot
 
 # Loading the Data
 
-on_list_voting_files
-
 ```{R}
-# Move data cleaning to download_data.R
-
 # Two votings types: Yes/No; on list
 votings_path <- "./Data/votings/"
 
@@ -278,15 +275,27 @@ for (i in on_list_voting_files) {
 
 # Cleaning the data
 
-We are dropping yes column, as it contains number of yes votes, votes.firstName, votes.lastName, votes.secondName, votes.club, term as those data is redundant.
+We are dropping yes column, as it contains number of yes votes, votes.firstName, votes.lastName, votes.secondName, votes.club, term, notParticipating, totalVoted as those data is redundant or is not relevant.
 
 ```{R}
+# How about no? #TODO
 # Yes/No votings
-head(y_n_votings)
+y_n_votings <- y_n_votings %>%
+  select(
+    !(c(yes,
+    notParticipating,
+    votes.firstName,
+    votes.lastName,
+    votes.secondName,
+    votes.club,
+    term,
+    totalVoted)))
 ```
 
 # Description of the Data
 
-```{R}
+The dataset after cleaning has the following columns:
 
+```{R}
+names(y_n_votings)
 ```
