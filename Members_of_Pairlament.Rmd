@@ -22,6 +22,7 @@ library(ggplot2)
 library(treemapify)
 library(DT)
 library(lubridate, warn.conflicts = FALSE)
+library(calendR)
 
 # Data
 mp_path <- "./Data/mp.csv"
@@ -123,6 +124,8 @@ mp <- mp %>%
 
 # Translating the data
 
+#TODO
+
 # What is the club distribution in the parliament?
 
 ```{R}
@@ -202,7 +205,7 @@ ggplot(treemap, aes(area=numberOfVotes, fill=club,
   theme_void()
 ```
 
-# What is the distribution of number of votes per club?
+## What is the distribution of number of votes per club?
 
 ```{R}
 ggplot(mp, aes(x=club, y=numberOfVotes, fill=club)) +
@@ -214,22 +217,32 @@ ggplot(mp, aes(x=club, y=numberOfVotes, fill=club)) +
 # Visualization using map for districts of MPs
 
 ```{R}
+#TODO
 ```
 
-# Visualisation using calendar for birthdays \# DO IT BETTER
+# Visualisation using calendar for birthdays
 
-```{R}
+```{R, out.width="100%"}
+# https://r-charts.com/evolution/calendar-heatmap/
 birthdays_per_day <- mp %>%
-  group_by(month = month(birthDate), day = (birthDate)) %>%
+  group_by(month = month(birthDate), day = day(birthDate)) %>%
   summarise(number=n())
 
-#ggplot(birthdays_per_day, aes(x=wday, y=week)) +
-#  geom_tile(aes(fill = number)) +
-#  facet_wrap(~month, scales = "free") +
-#  scale_y_reverse() +
-#  theme_minimal() +
-#  scale_x_discrete(position = "top") 
-#calendarHeat(as_date(birthdays_per_day$month, birthdays_per_day$day), birthdays_per_day$number)
+birthdays_per_day <- birthdays_per_day %>% mutate(date = as.Date(paste("2024", month, day, sep="-"))) %>% mutate(yday = yday(date))
+
+all_days_df <- data.frame(yday = 1:366)
+merged_df <- merge(all_days_df, birthdays_per_day, by = "yday", all.x = TRUE)
+merged_df$number[is.na(merged_df$number)] <- 0
+
+calendR(year = 2024,
+        special.days = merged_df$number,
+        gradient = TRUE,
+        low.col = "#FCFFDD",
+        special.col = "#00AAAE",
+        legend.pos = "bottom",
+        day.size=3.5,
+        title.size = 0,
+        weeknames.size=2)
 ```
 
 ------------------------------------------------------------------------
@@ -237,4 +250,5 @@ birthdays_per_day <- mp %>%
 # Introducing Voting Data
 
 ```{R}
+#TODO
 ```
