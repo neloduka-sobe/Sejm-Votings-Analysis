@@ -331,6 +331,8 @@ Sessions of Polish Parliament are divided into points, and votings. In this data
 
 # Number of votings per sitting, with days distinction
 ```{R}
+votings_per_sitting <- y_n_votings %>% group_by(sitting, day = sittingDay) %>% summarize(number_of_votings = max(votingNumber))
+#ggplot(votings_per_sitting, aes(x=day, y=number_of_votings)) + geom_bar() + facet_wrap(~sitting)
 ```
 
 # Votings heatmap on calendar
