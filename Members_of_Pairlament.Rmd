@@ -277,7 +277,6 @@ for (i in on_list_voting_files) {
 
 We are dropping yes column, as it contains number of yes `votes`, `votes.firstName`, `votes.lastName`, `votes.secondName`, `votes.club`, `term`, `notParticipating`, `totalVoted`, and `no` as those data is redundant or is not relevant. We would also drop `kind` as it has `R length(unique(y_n_votings$kind))` unique value.
 
-
 ```{R}
 # Yes/No votings
 y_n_votings <- y_n_votings %>%
@@ -293,7 +292,6 @@ y_n_votings <- y_n_votings %>%
     no,
     kind)))
 ```
-
 
 # Description of the Data
 
@@ -323,35 +321,78 @@ names(y_n_votings)
 
 `description`: Description of the voting
 
-
 Sessions of Polish Parliament are divided into points, and votings. In this data, `title` column regards the point of the session, when `topis`, and `description` regard voting.
 
 # Translating the data
+
 #TODO
 
 # Number of votings per sitting, with days distinction
+
 ```{R}
 votings_per_sitting <- y_n_votings %>% group_by(sitting, day = sittingDay) %>% summarize(number_of_votings = max(votingNumber))
-#ggplot(votings_per_sitting, aes(x=day, y=number_of_votings)) + geom_bar() + facet_wrap(~sitting)
+ggplot(votings_per_sitting, aes(x=day, y=number_of_votings)) + geom_violin()
+```
+
+```{R}
+#voting
+#ggplot(votings_per_sitting, aes(x=sitting, ))
 ```
 
 # Votings heatmap on calendar
+
 ```{R}
+# https://r-charts.com/evolution/calendar-heatmap/
+# Change for the beginning and end of the cadency
+
+votings_per_day <- y_n_votings %>% group_by(date) %>% summarize(number = max(votingNumber))
+votings_per_day <- votings_per_day %>% mutate(yday = yday(date))
+
+
+all_days_df <- data.frame(yday = 1:366) # Change for the beginning and end of the cadency
+#merged_df <- merge(all_days_df, birthdays_per_day, by = "yday", all.x = TRUE)
+#merged_df$number[is.na(merged_df$number)] <- 0
+
+#calendR(year = 2024,
+#        special.days = merged_df$number,
+#        gradient = TRUE,
+#        low.col = "#FCFFDD",
+#        special.col = "#00AAAE",
+#        legend.pos = "bottom",
+#        day.size=3.5,
+#        title.size = 0,
+#        weeknames.size=2)
 ```
 
 # Voting heatmap days and time
+
 ```{R}
 ```
 
 # Percentage of abstained votes heatmap per club
+
 ```{R}
 ```
 
 # Most abstaining MPs
+
 ```{R}
+## Strange abstain number when not abstain == 1
+abstaining <- y_n_votings %>%
+  filter(abstain != 1) %>%
+  group_by(votes.MP) %>%
+  summarize(abstained = count(abstain == 1), total = n()) %>%
+  mutate(id = votes.MP)
+
+abstaining <- inner_join(mp, abstaining, by = c("id"), na_ma) %>%
+  select(c(id, club, firstName, secondName, lastName, abstained, total)) %>%
+  arrange(desc(abstained))
+
+datatable(abstaining, filter = "top")
 ```
 
 # Least voting MPs
+
 ```{R}
 ```
 
