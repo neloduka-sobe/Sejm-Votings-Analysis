@@ -343,25 +343,32 @@ ggplot(votings_per_sitting, aes(x=day, y=number_of_votings)) + geom_violin()
 
 ```{R}
 # https://r-charts.com/evolution/calendar-heatmap/
-# Change for the beginning and end of the cadency
 
-votings_per_day <- y_n_votings %>% group_by(date) %>% summarize(number = max(votingNumber))
-votings_per_day <- votings_per_day %>% mutate(yday = yday(date))
+votings_per_day <- y_n_votings %>%
+  group_by(date) %>%
+  summarize(number = max(votingNumber))
+votings_per_day <- votings_per_day %>%
+  mutate(yday = yday(date)) %>%
+    group_by(yday) %>%
+    summarize(number = max(number))
 
+all_days_df <- data.frame(yday = 1:367)
+merged_df <- merge(all_days_df, votings_per_day, by = "yday", all.x = TRUE)
+merged_df <- merged_df %>%
+  mutate(yday = ifelse(yday <= 317, yday, yday-317))
+merged_df$number[is.na(merged_df$number)] <- 0
 
-all_days_df <- data.frame(yday = 1:366) # Change for the beginning and end of the cadency
-#merged_df <- merge(all_days_df, birthdays_per_day, by = "yday", all.x = TRUE)
-#merged_df$number[is.na(merged_df$number)] <- 0
-
-#calendR(year = 2024,
-#        special.days = merged_df$number,
-#        gradient = TRUE,
-#        low.col = "#FCFFDD",
-#        special.col = "#00AAAE",
-#        legend.pos = "bottom",
-#        day.size=3.5,
-#        title.size = 0,
-#        weeknames.size=2)
+calendR(year = 2024,
+        special.days = merged_df$number,
+        from=as.Date("2023-11-13"),
+        to=as.Date("2024-11-13"),
+        gradient = TRUE,
+        low.col = "#FCFFDD",
+        special.col = "#00AAAE",
+        legend.pos = "bottom",
+        day.size=3.5,
+        title.size = 0,
+        weeknames.size=2)
 ```
 
 # Voting heatmap days and time
@@ -372,23 +379,25 @@ all_days_df <- data.frame(yday = 1:366) # Change for the beginning and end of th
 # Percentage of abstained votes heatmap per club
 
 ```{R}
+#abstained_clubs <- y_n_votings %>% group_by(club) %>% summarize(sum(abstain))
+#abstained_clubs
 ```
 
 # Most abstaining MPs
 
 ```{R}
 ## Strange abstain number when not abstain == 1
-abstaining <- y_n_votings %>%
-  filter(abstain != 1) %>%
-  group_by(votes.MP) %>%
-  summarize(abstained = count(abstain == 1), total = n()) %>%
-  mutate(id = votes.MP)
+#abstaining <- y_n_votings %>%
+#  filter(abstain != 1) %>%
+#  group_by(votes.MP) %>%
+#  summarize(abstained = count(abstain == 1), total = n()) %>%
+#  mutate(id = votes.MP)
 
-abstaining <- inner_join(mp, abstaining, by = c("id"), na_ma) %>%
-  select(c(id, club, firstName, secondName, lastName, abstained, total)) %>%
-  arrange(desc(abstained))
+#abstaining <- inner_join(mp, abstaining, by = c("id"), na_ma) %>%
+#  select(c(id, club, firstName, secondName, lastName, abstained, total)) %>%
+#  arrange(desc(abstained))
 
-datatable(abstaining, filter = "top")
+#datatable(abstaining, filter = "top")
 ```
 
 # Least voting MPs
