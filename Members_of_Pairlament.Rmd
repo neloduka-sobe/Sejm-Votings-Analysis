@@ -9,6 +9,8 @@ format:
 number-sections: true
 editor: visual
 include-after-body: "footer.html"
+editor_options: 
+  chunk_output_type: inline
 ---
 
 # Loading the Data
@@ -29,6 +31,32 @@ mp_path <- "./Data/mp.csv"
 clubs_path <- "./Data/clubs.csv"
 mp <- read.csv(mp_path)
 clubs <- read.csv(clubs_path)
+```
+
+# Translating the data
+
+```{R}
+# educationLevel
+mp$educationLevel = replace(mp$educationLevel,
+                            mp$educationLevel=="wyższe",
+                            "higher")
+
+mp$educationLevel = replace(mp$educationLevel,
+                            mp$educationLevel=="średnie ogólne",
+                            "tertiary")
+
+mp$educationLevel = replace(mp$educationLevel,
+                            mp$educationLevel=="średnie zawodowe",
+                            "vocational tertiary")
+mp$educationLevel = replace(mp$educationLevel,
+                            mp$educationLevel=="średnie policealne/pomaturalne",
+                            "post-secondary")
+
+# profession #TODO
+
+# inactiveCause #TODO
+
+# waiverDesc #TODO
 ```
 
 # Background of the data
@@ -122,9 +150,7 @@ mp <- mp %>%
   mutate(birthDate = as_date(birthDate))
 ```
 
-# Translating the data
 
-#TODO
 
 # What is the club distribution in the parliament?
 
