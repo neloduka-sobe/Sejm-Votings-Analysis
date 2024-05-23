@@ -54,9 +54,38 @@ mp$educationLevel = replace(mp$educationLevel,
 
 # profession #TODO
 
-# inactiveCause #TODO
+# inactiveCause
+mp$inactiveCause = replace(mp$inactiveCause,
+                            mp$inactiveCause=="Zrzeczenie",
+                            "abdication")
 
-# waiverDesc #TODO
+mp$inactiveCause = replace(mp$inactiveCause,
+                            mp$inactiveCause=="Zgon",
+                            "death")
+# waiverDesc
+mp$waiverDesc = replace(mp$waiverDesc,
+                            mp$waiverDesc=="Zmarł",
+                            "Died")
+
+mp$waiverDesc = replace(mp$waiverDesc,
+                            mp$waiverDesc=="Objął mandat posła do Parlamentu Europejskiego",
+                            "Became a member of the European Parliament")
+
+mp$waiverDesc = replace(mp$waiverDesc,
+                            mp$waiverDesc=="Utrata prawa wybieralności",
+                            "Loss of the right to be elected")
+
+mp$waiverDesc = replace(mp$waiverDesc,
+                            mp$waiverDesc=="Wybrany na funkcję Prezydenta Miasta Krakowa",
+                            "Elected as Mayor of the City of Krakow")
+
+mp$waiverDesc = replace(mp$waiverDesc,
+                            mp$waiverDesc=="Wybrany na funkcję Prezydenta Miasta Leszna",
+                            "Elected as Mayor of the City of Leszno")
+
+mp$waiverDesc = replace(mp$waiverDesc,
+                            mp$waiverDesc=="Powołany na członka Zarządu Narodowego Banku Polskiego",
+                            "Appointed as a member of the Management Board of the National Bank of Poland")
 ```
 
 # Background of the data
