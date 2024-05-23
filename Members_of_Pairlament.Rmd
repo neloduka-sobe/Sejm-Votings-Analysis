@@ -25,6 +25,7 @@ library(treemapify)
 library(DT)
 library(lubridate, warn.conflicts = FALSE)
 library(calendR)
+library(deeplr)
 
 # Data
 mp_path <- "./Data/mp.csv"
@@ -36,6 +37,7 @@ clubs <- read.csv(clubs_path)
 # Translating the data
 
 ```{R}
+API_KEY <- Sys.getenv("DEEPL_API")
 # educationLevel
 mp$educationLevel = replace(mp$educationLevel,
                             mp$educationLevel=="wyższe",
@@ -52,10 +54,15 @@ mp$educationLevel = replace(mp$educationLevel,
                             mp$educationLevel=="średnie policealne/pomaturalne",
                             "post-secondary")
 
-# profession #TODO
-
+# profession
+mp$profession[is.na(mp$profession)] <- ''
+mp$profession <- translate2(text = mp$profession, 
+           source_lang = "PL",
+           target_lang = "EN",
+           auth_key = API_KEY)
+mp$profession[mp$profession == ''] <- NA
 # inactiveCause
-mp$inactiveCause = replace(mp$inactiveCause,
+mp$inactiveCause = replace(mp$inaciveCause,
                             mp$inactiveCause=="Zrzeczenie",
                             "abdication")
 

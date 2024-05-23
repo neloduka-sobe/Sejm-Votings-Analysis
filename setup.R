@@ -10,8 +10,9 @@ LIBRARIES = c(
     "calendR",
     "lubridate",
     "treemapify",
-    "httr",)
-    "jsonlite"
+    "httr",
+    "jsonlite",
+    "deeplr")
 
 install = function(lib) {
     # Takes library name as an input
