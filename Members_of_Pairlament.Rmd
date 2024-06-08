@@ -36,7 +36,7 @@ clubs <- read.csv(clubs_path)
 
 # Translating the data
 
-```{R}
+```{R, eval = FALSE}
 API_KEY <- Sys.getenv("DEEPL_API")
 # educationLevel
 mp$educationLevel = replace(mp$educationLevel,
@@ -277,15 +277,6 @@ ggplot(mp, aes(x=club, y=numberOfVotes, fill=club)) +
   theme(legend.position="none")
 ```
 
-# Visualization using map for districts of MPs
-
-```{R}
-# Use API to get coordinates
-# Mutate dataset
-# Use ggplot for plotting the data
-# TODO
-```
-
 # Visualisation using calendar for birthdays
 
 ```{R, out.width="100%"}
@@ -353,6 +344,7 @@ y_n_votings <- y_n_votings %>%
     totalVoted,
     no,
     kind)))
+y_n_votings$date <- as.POSIXct(y_n_votings$date, format = "%Y-%m-%dT%H:%M:%S")
 ```
 
 # Description of the Data
@@ -386,19 +378,25 @@ names(y_n_votings)
 Sessions of Polish Parliament are divided into points, and votings. In this data, `title` column regards the point of the session, when `topis`, and `description` regard voting.
 
 # Translating the data
-
-#TODO
+```{R, eval = FALSE}
+# TODO
+```
 
 # Number of votings per sitting, with days distinction
 
 ```{R}
-votings_per_sitting <- y_n_votings %>% group_by(sitting, day = sittingDay) %>% summarize(number_of_votings = max(votingNumber))
-ggplot(votings_per_sitting, aes(x=day, y=number_of_votings)) + geom_violin()
-```
+votings_per_sitting <- y_n_votings %>%
+  group_by(sitting, sittingDay) %>%
+  summarise(number_of_votings = n())
 
-```{R}
-#voting
-#ggplot(votings_per_sitting, aes(x=sitting, ))
+# Plot data
+ggplot(votings_per_sitting, aes(x = factor(sitting), y = number_of_votings, fill = factor(sittingDay))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Number of Votings per Sitting with Days Distinction",
+       x = "Sitting Number",
+       y = "Number of Votings",
+       fill = "Sitting Day") +
+  theme_minimal()
 ```
 
 # Votings heatmap on calendar
@@ -436,35 +434,70 @@ calendR(year = 2024,
 # Voting heatmap days and time
 
 ```{R}
+y_n_votings <- y_n_votings %>%
+  mutate(day_of_week = wday(date, label = TRUE, week_start = 1),
+         hour = hour(date))
+
+votings_per_day_time <- y_n_votings %>%
+  group_by(day_of_week, hour) %>%
+  summarise(number_of_votings = n()) %>%
+  ungroup()
+
+ggplot(votings_per_day_time, aes(x = hour, y = day_of_week, fill = number_of_votings)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "yellow", high = "red") +
+  labs(title = "Heatmap of Votings by Day and Time",
+       x = "Hour of Day",
+       y = "Day of Week",
+       fill = "Number of Votings") +
+  theme_minimal()
 ```
 
 # Percentage of abstained votes heatmap per club
 
 ```{R}
-#abstained_clubs <- y_n_votings %>% group_by(club) %>% summarize(sum(abstain))
-#abstained_clubs
+merged_data <- y_n_votings %>%
+  left_join(mp, by = c("votes.MP" = "id")) %>%
+  left_join(clubs, by = c("club" = "id"))
+
+abstained_votes_percentage <- merged_data %>%
+  group_by(club) %>%
+  summarise(total_votes = n(),
+            abstained_votes = sum(abstain==1)) %>%
+  mutate(percentage_abstained = (abstained_votes / total_votes) * 100) %>%
+  ungroup()
+
+ggplot(abstained_votes_percentage, aes(x = club, y = percentage_abstained)) +
+  geom_bar(stat = "identity", fill = "skyblue", width = 0.5) +
+  labs(title = "Percentage of Abstained Votes by Entity",
+       x = "Entity",
+       y = "Percentage of Abstained Votes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
 # Most abstaining MPs
 
 ```{R}
-## Strange abstain number when not abstain == 1
-#abstaining <- y_n_votings %>%
-#  filter(abstain != 1) %>%
-#  group_by(votes.MP) %>%
-#  summarize(abstained = count(abstain == 1), total = n()) %>%
-#  mutate(id = votes.MP)
+abstaining <- y_n_votings %>%
+  inner_join(mp, by = c("votes.MP" = "id")) %>%
+  group_by(firstName, secondName, lastName, club) %>%
+  summarise(Abstain_Count = sum(abstain==1),
+            Total_Votes = n(),
+            Abstain_Rate = round(sum(abstain==1) / n() * 100, 2)) %>%
+  arrange(desc(Abstain_Rate))
 
-#abstaining <- inner_join(mp, abstaining, by = c("id"), na_ma) %>%
-#  select(c(id, club, firstName, secondName, lastName, abstained, total)) %>%
-#  arrange(desc(abstained))
-
-#datatable(abstaining, filter = "top")
+datatable(abstaining, filter = "top")
 ```
 
 # Least voting MPs
 
 ```{R}
+least_voting <- y_n_votings %>%
+  inner_join(mp, by = c("votes.MP" = "id")) %>%
+  group_by(firstName, secondName, lastName, club) %>%
+  summarise(Vote_Count = n()) %>%
+  arrange(Vote_Count)
+datatable(least_voting, filter = "top")
 ```
 
 # Deeper statistical analysis of the data (correlations, predicting votes, importancy of a single MP)
