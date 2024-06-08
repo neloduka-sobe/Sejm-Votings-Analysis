@@ -26,6 +26,9 @@ library(DT)
 library(lubridate, warn.conflicts = FALSE)
 library(calendR)
 library(deeplr)
+# For calculating correlations
+library(corrplot)
+#library(Hmisc)
 
 # Data
 mp_path <- "./Data/mp.csv"
@@ -387,7 +390,7 @@ Sessions of Polish Parliament are divided into points, and votings. In this data
 ```{R}
 votings_per_sitting <- y_n_votings %>%
   group_by(sitting, sittingDay) %>%
-  summarise(number_of_votings = n())
+  summarise(number_of_votings = max(votingNumber))
 
 # Plot data
 ggplot(votings_per_sitting, aes(x = factor(sitting), y = number_of_votings, fill = factor(sittingDay))) +
@@ -469,8 +472,8 @@ abstained_votes_percentage <- merged_data %>%
 
 ggplot(abstained_votes_percentage, aes(x = club, y = percentage_abstained)) +
   geom_bar(stat = "identity", fill = "skyblue", width = 0.5) +
-  labs(title = "Percentage of Abstained Votes by Entity",
-       x = "Entity",
+  labs(title = "Percentage of Abstained Votes by Club",
+       x = "Club",
        y = "Percentage of Abstained Votes") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
@@ -500,4 +503,22 @@ least_voting <- y_n_votings %>%
 datatable(least_voting, filter = "top")
 ```
 
-# Deeper statistical analysis of the data (correlations, predicting votes, importancy of a single MP)
+# Deeper statistical analysis of the data
+
+## Correlation Analysis
+```{R}
+```
+
+## Time Series Analysis
+```{R}
+```
+
+## Cluster Analysis
+```{R}
+```
+
+## Network Analysis
+```{R}
+```
+
+# Summary

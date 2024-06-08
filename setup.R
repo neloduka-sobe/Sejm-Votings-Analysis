@@ -12,7 +12,9 @@ LIBRARIES = c(
     "treemapify",
     "httr",
     "jsonlite",
-    "deeplr")
+    "deeplr",
+    "corrplot",
+    "Hmisc")
 
 install = function(lib) {
     # Takes library name as an input
