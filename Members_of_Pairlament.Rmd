@@ -26,9 +26,8 @@ library(DT)
 library(lubridate, warn.conflicts = FALSE)
 library(calendR)
 library(deeplr)
-# For calculating correlations
-library(corrplot)
-#library(Hmisc)
+library(igraph)
+library(RColorBrewer)
 
 # Data
 mp_path <- "./Data/mp.csv"
@@ -503,22 +502,175 @@ least_voting <- y_n_votings %>%
 datatable(least_voting, filter = "top")
 ```
 
-# Deeper statistical analysis of the data
+# Network Analysis of the Data
 
-## Correlation Analysis
+Let's create a function to filter data for a specific MP
 ```{R}
+filter_mp_data <- function(mp_id, mp_data, voting_data) {
+  mp <- mp_data[mp_data$id == mp_id, ]
+  
+  votes <- voting_data[voting_data$`votes.MP` == mp_id, ]
+  
+  return(list(mp = mp, votes = votes))
+}
 ```
 
-## Time Series Analysis
+Let's create a function to calculate the similarity of two MPs
 ```{R}
+calculate_similarity <- function(mp1_votes, mp2_votes) {
+  merged_votes <- merge(mp1_votes, mp2_votes, 
+                        by = c("date", "sitting", "votingNumber"),
+                        suffixes = c("_mp1", "_mp2"))
+  
+  # Calculate similarity score (percentage of matching votes)
+  total_votes <- nrow(merged_votes)
+  if (total_votes == 0) {
+    return(0)  # No common votes
+  }
+  matching_votes <- sum(merged_votes$votes.vote_mp1 == merged_votes$votes.vote_mp2, na.rm = TRUE)
+  
+  similarity_score <- matching_votes / total_votes
+  return(similarity_score)
+}
 ```
 
-## Cluster Analysis
+We want to create the networks around leaders of the clubs
 ```{R}
+leaders_ids <- c(148, 400, 241, 122, 174, 58)
 ```
 
-## Network Analysis
+## Similarity network graphs
 ```{R}
+build_similarity_network <- function(mp_data, voting_data, threshold = 0.7) {
+  mp_ids <- unique(mp_data$id)
+  n_mps <- length(mp_ids)
+  
+  similarity_matrix <- matrix(0, nrow = n_mps, ncol = n_mps)
+  rownames(similarity_matrix) <- mp_ids
+  colnames(similarity_matrix) <- mp_ids
+  
+  for (i in 1:(n_mps - 1)) {
+    for (j in (i + 1):n_mps) {
+      mp1_data <- filter_mp_data(mp_ids[i], mp_data, voting_data)
+      mp2_data <- filter_mp_data(mp_ids[j], mp_data, voting_data)
+      
+      similarity_score <- calculate_similarity(mp1_data$votes, mp2_data$votes)
+      
+      similarity_matrix[i, j] <- similarity_score
+      similarity_matrix[j, i] <- similarity_score
+    }
+  }
+  
+  similarity_matrix <- (similarity_matrix + t(similarity_matrix)) / 2
+  
+  graph <- graph_from_adjacency_matrix(similarity_matrix, 
+                                       mode = "undirected", 
+                                       weighted = TRUE,
+                                       diag = FALSE)
+  
+  graph <- delete_edges(graph, E(graph)[E(graph)$weight < threshold])
+  
+  # Print diagnostic information
+  print(paste("Number of vertices in graph:", vcount(graph)))
+  print(paste("Number of rows in mp_data:", nrow(mp_data)))
+  print(paste("Number of unique IDs in mp_data:", length(unique(mp_data$id))))
+  
+  # Check if all graph vertex names are in mp_data$id
+  missing_ids <- setdiff(V(graph)$name, mp_data$id)
+  if (length(missing_ids) > 0) {
+    warning("Some vertex IDs are not present in mp_data$id")
+    print(paste("Number of missing IDs:", length(missing_ids)))
+    print("First few missing IDs:")
+    print(head(missing_ids))
+  }
+  
+  # Create a data frame for vertex attributes, handling potential mismatches
+  vertex_attr <- data.frame(
+    name = V(graph)$name,
+    stringsAsFactors = FALSE
+  )
+  
+  # Match attributes, using NA for any unmatched IDs
+  vertex_attr$club <- mp_data$club[match(vertex_attr$name, mp_data$id)]
+  vertex_attr$firstLastName <- mp_data$firstLastName[match(vertex_attr$name, mp_data$id)]
+  
+  # Add attributes to the graph
+  graph <- set_vertex_attr(graph, "club", value = vertex_attr$club)
+  graph <- set_vertex_attr(graph, "firstLastName", value = vertex_attr$firstLastName)
+  
+  return(graph)
+}
+```
+
+```{R}
+visualize_network <- function(graph, leaders_ids) {
+  # Get unique clubs and assign colors
+  clubs <- unique(vertex_attr(graph, "club"))
+  clubs <- clubs[!is.na(clubs) & clubs != ""]  # Remove NA and empty strings
+  n_clubs <- length(clubs)
+  
+  if (n_clubs > 0) {
+    color_palette <- brewer.pal(max(3, min(n_clubs, 9)), "Set1")  # Limited to 9 colors
+    club_colors <- setNames(color_palette[1:min(n_clubs, 9)], clubs)
+    
+    # Assign colors to nodes based on club
+    V(graph)$color <- club_colors[vertex_attr(graph, "club")]
+  } else {
+    V(graph)$color <- "lightblue"  # Default color if no clubs
+  }
+  
+  V(graph)$color[is.na(V(graph)$color) | V(graph)$color == ""] <- "gray"  # Assign gray to any NA or empty values
+  
+  # Set node labels (only for leaders)
+  V(graph)$label <- rep(NA, vcount(graph))  # Initialize all labels as NA
+  leader_indices <- which(V(graph)$name %in% leaders_ids)
+  if (length(leader_indices) > 0) {
+    V(graph)$label[leader_indices] <- vertex_attr(graph, "firstLastName")[leader_indices]
+  }
+  
+  # Set node sizes (larger for leaders)
+  V(graph)$size <- 5  # Default size
+  V(graph)$size[leader_indices] <- 10  # Larger size for leaders
+  
+  # Plot the graph
+  plot(graph, 
+       vertex.label = V(graph)$label,
+       vertex.label.cex = 0.7,
+       vertex.label.dist = 1,
+       vertex.label.color = "black",
+       edge.width = E(graph)$weight * 3,
+       layout = layout_with_fr(graph))
+  
+  # Add a legend for club colors
+  if (length(club_colors) > 0) {
+    legend("bottomright", legend = names(club_colors), 
+           col = club_colors, pch = 19, pt.cex = 1.5, 
+           title = "Clubs", bty = "n")
+  }
+}
+```
+
+## Visualization
+```{R}
+graph <- build_similarity_network(mp, y_n_votings)
+
+visualize_network(graph, leaders_ids)
+```
+
+## Most similar voters
+```{R}
+most_similar <- as_data_frame(graph, what = "edges") %>%
+  arrange(desc(weight)) %>%
+  head(10)
+print(most_similar)
+```
+
+## Least similar voters
+```{R}
+least_similar <- as_data_frame(graph, what = "edges") %>%
+  arrange(weight) %>%
+  head(10)
+print(least_similar)
 ```
 
 # Summary
