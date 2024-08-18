@@ -598,6 +598,10 @@ build_similarity_network <- function(mp_data, voting_data, threshold = 0.7) {
   graph <- set_vertex_attr(graph, "club", value = vertex_attr$club)
   graph <- set_vertex_attr(graph, "firstLastName", value = vertex_attr$firstLastName)
   
+  # Print diagnostic information about attributes
+  print(paste("Number of vertices with 'club' attribute:", sum(!is.na(vertex_attr$club))))
+  print(paste("Number of vertices with 'firstLastName' attribute:", sum(!is.na(vertex_attr$firstLastName))))
+  
   return(graph)
 }
 ```
@@ -623,9 +627,27 @@ visualize_network <- function(graph, leaders_ids) {
   
   # Set node labels (only for leaders)
   V(graph)$label <- rep(NA, vcount(graph))  # Initialize all labels as NA
-  leader_indices <- which(V(graph)$name %in% leaders_ids)
+  leader_indices <- which(V(graph)$name %in% as.character(leaders_ids))
+  
+  # Print diagnostic information
+  print(paste("Number of leaders found in graph:", length(leader_indices)))
+  print("Leader indices:")
+  print(leader_indices)
+  
   if (length(leader_indices) > 0) {
-    V(graph)$label[leader_indices] <- vertex_attr(graph, "firstLastName")[leader_indices]
+    leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
+    print("Leader names:")
+    print(leader_names)
+    
+    # Check if any leader names are NA or empty
+    valid_names <- !is.na(leader_names) & leader_names != ""
+    if (any(valid_names)) {
+      V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
+    } else {
+      warning("No valid names found for leaders")
+    }
+  } else {
+    warning("No leader IDs found in the graph")
   }
   
   # Set node sizes (larger for leaders)
