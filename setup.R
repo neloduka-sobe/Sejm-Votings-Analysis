@@ -13,8 +13,8 @@ LIBRARIES = c(
     "httr",
     "jsonlite",
     "deeplr",
-    "corrplot",
-    "Hmisc")
+    "igraph",
+    "RColorBrewer")
 
 install = function(lib) {
     # Takes library name as an input

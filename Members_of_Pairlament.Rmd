@@ -178,7 +178,7 @@ We would also drop `firstLastName`, and `lastFirstName`, as those are redundant 
 
 ```{R}
 mp <- mp %>%
-  select(!c(firstLastName, lastFirstName))
+  select(!c(lastFirstName))
 ```
 
 We also change `birthDate` to the date type
@@ -635,16 +635,21 @@ visualize_network <- function(graph, leaders_ids) {
   print(leader_indices)
   
   if (length(leader_indices) > 0) {
-    leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
-    print("Leader names:")
-    print(leader_names)
-    
-    # Check if any leader names are NA or empty
-    valid_names <- !is.na(leader_names) & leader_names != ""
-    if (any(valid_names)) {
-      V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
+    # Ensure the 'firstLastName' attribute exists
+    if ("firstLastName" %in% vertex_attr_names(graph)) {
+      leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
+      print("Leader names:")
+      print(leader_names)
+      
+      # Check if any leader names are NA or empty
+      valid_names <- !is.na(leader_names) & leader_names != ""
+      if (any(valid_names)) {
+        V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
+      } else {
+        warning("No valid names found for leaders")
+      }
     } else {
-      warning("No valid names found for leaders")
+      warning("'firstLastName' attribute not found in graph")
     }
   } else {
     warning("No leader IDs found in the graph")
@@ -670,6 +675,7 @@ visualize_network <- function(graph, leaders_ids) {
            title = "Clubs", bty = "n")
   }
 }
+
 ```
 
 ## Visualization
