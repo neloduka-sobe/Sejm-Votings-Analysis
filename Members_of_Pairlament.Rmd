@@ -536,7 +536,7 @@ calculate_similarity <- function(mp1_votes, mp2_votes) {
 
 We want to create the networks around leaders of the clubs
 ```{R}
-leaders_ids <- c(148, 400, 241, 122, 174, 58)
+leaders_ids <- c(148, 400, 241, 133, 174, 58)
 ```
 
 ## Similarity network graphs
@@ -629,19 +629,9 @@ visualize_network <- function(graph, leaders_ids) {
   V(graph)$label <- rep(NA, vcount(graph))  # Initialize all labels as NA
   leader_indices <- which(V(graph)$name %in% as.character(leaders_ids))
   
-  # Print diagnostic information
-  print(paste("Number of leaders found in graph:", length(leader_indices)))
-  print("Leader indices:")
-  print(leader_indices)
-  
   if (length(leader_indices) > 0) {
-    # Ensure the 'firstLastName' attribute exists
     if ("firstLastName" %in% vertex_attr_names(graph)) {
       leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
-      print("Leader names:")
-      print(leader_names)
-      
-      # Check if any leader names are NA or empty
       valid_names <- !is.na(leader_names) & leader_names != ""
       if (any(valid_names)) {
         V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
@@ -656,26 +646,33 @@ visualize_network <- function(graph, leaders_ids) {
   }
   
   # Set node sizes (larger for leaders)
-  V(graph)$size <- 5  # Default size
-  V(graph)$size[leader_indices] <- 10  # Larger size for leaders
+  V(graph)$size <- 3  # Smaller default size
+  V(graph)$size[leader_indices] <- 6  # Larger size for leaders, but still smaller than before
+  
+  # Calculate layout with more spacing
+  layout <- layout_with_fr(graph, niter = 500, area = vcount(graph)^2.3)
   
   # Plot the graph
+  par(mar = c(1, 1, 1, 1))  # Reduce margins
   plot(graph, 
        vertex.label = V(graph)$label,
-       vertex.label.cex = 0.7,
-       vertex.label.dist = 1,
+       vertex.label.cex = 0.6,
+       vertex.label.dist = 1.5,
        vertex.label.color = "black",
-       edge.width = E(graph)$weight * 3,
-       layout = layout_with_fr(graph))
+       edge.width = E(graph)$weight,
+       edge.curved = 0.2,
+       layout = layout,
+       rescale = TRUE,
+       asp = 0,
+       main = "Network Visualization")
   
   # Add a legend for club colors
   if (length(club_colors) > 0) {
     legend("bottomright", legend = names(club_colors), 
-           col = club_colors, pch = 19, pt.cex = 1.5, 
-           title = "Clubs", bty = "n")
+           col = club_colors, pch = 19, pt.cex = 1, 
+           title = "Clubs", bty = "n", cex = 0.7)
   }
 }
-
 ```
 
 ## Visualization
@@ -687,10 +684,16 @@ visualize_network(graph, leaders_ids)
 
 ## Most similar voters
 ```{R}
+mp <- mp %>% mutate(id = as.character(id))
 most_similar <- as_data_frame(graph, what = "edges") %>%
   arrange(desc(weight)) %>%
   head(10)
-print(most_similar)
+
+most_similar <- most_similar %>%
+  left_join(mp %>% select(id, firstName, lastName, club), by = c("from" = "id")) %>%
+  left_join(mp %>% select(id, firstName, lastName, club), by = c("to" = "id"), suffix = c("_from", "_to"))
+  
+datatable(most_similar, filter = "top")
 ```
 
 ## Least similar voters
@@ -698,7 +701,12 @@ print(most_similar)
 least_similar <- as_data_frame(graph, what = "edges") %>%
   arrange(weight) %>%
   head(10)
-print(least_similar)
+
+least_similar <- least_similar %>%
+  left_join(mp %>% select(id, firstName, secondName, lastName, club), by = c("from" = "id")) %>%
+  left_join(mp %>% select(id, firstName, secondName, lastName, club), by = c("to" = "id"), suffix = c("_from", "_to"))
+
+datatable(least_similar, filter = "top")
 ```
 
 # Summary
