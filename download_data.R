@@ -12,11 +12,11 @@ API_URL <- "https://api.sejm.gov.pl"
 TERM <- "10"
 
 check_response <- function(res, text) {
-  # Gets: response from GET, error message
-  # Exist with error if status != 200
   if (res$status != 200) {
-    stop(paste0("Error code: ", text))
+    warning(paste0("Error code: ", text))
+    return(FALSE)
   }
+  return(TRUE)
 }
 
 # Loading clubs data
@@ -55,7 +55,12 @@ while (rawToChar(res$content) != "[]") {
   for (voting in 1:number_of_votings) {
     vot_url <- paste0(url, sitting, "/", voting)
     res <- GET(vot_url)
-    check_response(res, paste("While downloading votings, sitting:", sitting, "voting:", voting))
+    # In the main loop:
+    if (!check_response(res, paste("While downloading votings, sitting:", sitting, "voting:", voting))) {
+      # Log the error and continue with the next voting
+      cat(paste("Skipping sitting:", sitting, "voting:", voting, "\n"))
+      next
+    }
     vot <- fromJSON(rawToChar(res$content))
     
     if (fromJSON(rawToChar(res$content))$kind == "ON_LIST") {

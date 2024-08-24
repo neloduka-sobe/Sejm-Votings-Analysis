@@ -38,7 +38,7 @@ clubs <- read.csv(clubs_path)
 
 # Translating the data
 
-```{R, eval = FALSE}
+```{R}
 API_KEY <- Sys.getenv("DEEPL_API")
 # educationLevel
 mp$educationLevel = replace(mp$educationLevel,
@@ -287,7 +287,9 @@ birthdays_per_day <- mp %>%
   group_by(month = month(birthDate), day = day(birthDate)) %>%
   summarise(number=n())
 
-birthdays_per_day <- birthdays_per_day %>% mutate(date = as.Date(paste("2024", month, day, sep="-"))) %>% mutate(yday = yday(date))
+birthdays_per_day <- birthdays_per_day %>%
+  mutate(date = as.Date(paste("2024", month, day, sep="-"))) %>%
+  mutate(yday = yday(date))
 
 all_days_df <- data.frame(yday = 1:366)
 merged_df <- merge(all_days_df, birthdays_per_day, by = "yday", all.x = TRUE)
@@ -313,24 +315,17 @@ The Polish Parliament API provides the data on all the voting, including the vot
 # Loading the Data
 
 ```{R}
-# Two votings types: Yes/No; on list
+# Two votings types: Yes/No; on list.
+# Ignoring on list, as not significant number of entries.
 votings_path <- "./Data/votings/"
 
 # Yes/No votings
 y_n_votings <- read.csv(paste0(votings_path, "y_n_votings.csv"))
-
-# On List votings #TODO
-on_list_voting_files <- list.files(votings_path, pattern = "sitting")
-
-for (i in on_list_voting_files) {
-  temp <- read.csv(paste0(votings_path, i))
-  rm(temp)
-}
 ```
 
 # Cleaning the data
 
-We are dropping yes column, as it contains number of yes `votes`, `votes.firstName`, `votes.lastName`, `votes.secondName`, `votes.club`, `term`, `notParticipating`, `totalVoted`, and `no` as those data is redundant or is not relevant. We would also drop `kind` as it has `R length(unique(y_n_votings$kind))` unique value.
+We are dropping yes column, as it contains number of yes `votes`, `votes.firstName`, `votes.lastName`, `votes.secondName`, `votes.club`, `term`, `notParticipating`, `totalVoted`, and `no` as those data is redundant or is not relevant. We would also drop `kind` as it has `{R} length(unique(y_n_votings$kind))` unique value.
 
 ```{R}
 # Yes/No votings
@@ -379,11 +374,6 @@ names(y_n_votings)
 
 Sessions of Polish Parliament are divided into points, and votings. In this data, `title` column regards the point of the session, when `topis`, and `description` regard voting.
 
-# Translating the data
-```{R, eval = FALSE}
-# TODO
-```
-
 # Number of votings per sitting, with days distinction
 
 ```{R}
@@ -392,7 +382,9 @@ votings_per_sitting <- y_n_votings %>%
   summarise(number_of_votings = max(votingNumber))
 
 # Plot data
-ggplot(votings_per_sitting, aes(x = factor(sitting), y = number_of_votings, fill = factor(sittingDay))) +
+ggplot(votings_per_sitting, aes(x = factor(sitting),
+                                y = number_of_votings,
+                                fill = factor(sittingDay))) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Number of Votings per Sitting with Days Distinction",
        x = "Sitting Number",
@@ -445,7 +437,8 @@ votings_per_day_time <- y_n_votings %>%
   summarise(number_of_votings = n()) %>%
   ungroup()
 
-ggplot(votings_per_day_time, aes(x = hour, y = day_of_week, fill = number_of_votings)) +
+ggplot(votings_per_day_time, aes(x = hour, y = day_of_week,
+                                 fill = number_of_votings)) +
   geom_tile(color = "white") +
   scale_fill_gradient(low = "yellow", high = "red") +
   labs(title = "Heatmap of Votings by Day and Time",
@@ -519,7 +512,7 @@ Let's create a function to calculate the similarity of two MPs
 ```{R}
 calculate_similarity <- function(mp1_votes, mp2_votes) {
   merged_votes <- merge(mp1_votes, mp2_votes, 
-                        by = c("date", "sitting", "votingNumber"),
+                        by = c("sitting", "votingNumber"),
                         suffixes = c("_mp1", "_mp2"))
   
   # Calculate similarity score (percentage of matching votes)
@@ -527,7 +520,8 @@ calculate_similarity <- function(mp1_votes, mp2_votes) {
   if (total_votes == 0) {
     return(0)  # No common votes
   }
-  matching_votes <- sum(merged_votes$votes.vote_mp1 == merged_votes$votes.vote_mp2, na.rm = TRUE)
+  matching_votes <-sum(merged_votes$votes.vote_mp1 ==
+                         merged_votes$votes.vote_mp2, na.rm = TRUE)
   
   similarity_score <- matching_votes / total_votes
   return(similarity_score)
@@ -541,7 +535,7 @@ leaders_ids <- c(148, 400, 241, 133, 174, 58)
 
 ## Similarity network graphs
 ```{R}
-build_similarity_network <- function(mp_data, voting_data, threshold = 0.7) {
+build_similarity_network <- function(mp_data, voting_data, threshold = 0.5) {
   mp_ids <- unique(mp_data$id)
   n_mps <- length(mp_ids)
   
@@ -592,15 +586,20 @@ build_similarity_network <- function(mp_data, voting_data, threshold = 0.7) {
   
   # Match attributes, using NA for any unmatched IDs
   vertex_attr$club <- mp_data$club[match(vertex_attr$name, mp_data$id)]
-  vertex_attr$firstLastName <- mp_data$firstLastName[match(vertex_attr$name, mp_data$id)]
+  vertex_attr$firstLastName <-
+    mp_data$firstLastName[match(vertex_attr$name, mp_data$id)]
   
   # Add attributes to the graph
-  graph <- set_vertex_attr(graph, "club", value = vertex_attr$club)
-  graph <- set_vertex_attr(graph, "firstLastName", value = vertex_attr$firstLastName)
+  graph <- set_vertex_attr(graph, "club", 
+                           value = vertex_attr$club)
+  graph <- set_vertex_attr(graph, name = "firstLastName",
+                           value = vertex_attr$firstLastName)
   
   # Print diagnostic information about attributes
-  print(paste("Number of vertices with 'club' attribute:", sum(!is.na(vertex_attr$club))))
-  print(paste("Number of vertices with 'firstLastName' attribute:", sum(!is.na(vertex_attr$firstLastName))))
+  print(paste("Number of vertices with 'club' attribute:",
+              sum(!is.na(vertex_attr$club))))
+  print(paste("Number of vertices with 'firstLastName' attribute:",
+              sum(!is.na(vertex_attr$firstLastName))))
   
   return(graph)
 }
@@ -610,68 +609,94 @@ build_similarity_network <- function(mp_data, voting_data, threshold = 0.7) {
 visualize_network <- function(graph, leaders_ids) {
   # Get unique clubs and assign colors
   clubs <- unique(vertex_attr(graph, "club"))
-  clubs <- clubs[!is.na(clubs) & clubs != ""]  # Remove NA and empty strings
+  clubs <- clubs[!is.na(clubs) & clubs != ""]
   n_clubs <- length(clubs)
   
   if (n_clubs > 0) {
-    color_palette <- brewer.pal(max(3, min(n_clubs, 9)), "Set1")  # Limited to 9 colors
+    color_palette <- RColorBrewer::brewer.pal(max(3, min(n_clubs, 9)), "Set1")
     club_colors <- setNames(color_palette[1:min(n_clubs, 9)], clubs)
-    
-    # Assign colors to nodes based on club
     V(graph)$color <- club_colors[vertex_attr(graph, "club")]
   } else {
-    V(graph)$color <- "lightblue"  # Default color if no clubs
+    V(graph)$color <- "lightblue"
   }
   
-  V(graph)$color[is.na(V(graph)$color) | V(graph)$color == ""] <- "gray"  # Assign gray to any NA or empty values
+  V(graph)$color[is.na(V(graph)$color) | V(graph)$color == ""] <- "gray"
   
   # Set node labels (only for leaders)
-  V(graph)$label <- rep(NA, vcount(graph))  # Initialize all labels as NA
+  V(graph)$label <- rep(NA, vcount(graph))
   leader_indices <- which(V(graph)$name %in% as.character(leaders_ids))
   
-  if (length(leader_indices) > 0) {
-    if ("firstLastName" %in% vertex_attr_names(graph)) {
-      leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
-      valid_names <- !is.na(leader_names) & leader_names != ""
-      if (any(valid_names)) {
-        V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
-      } else {
-        warning("No valid names found for leaders")
-      }
-    } else {
-      warning("'firstLastName' attribute not found in graph")
-    }
-  } else {
-    warning("No leader IDs found in the graph")
+  if (length(leader_indices) > 0 && "firstLastName" %in% vertex_attr_names(graph)) {
+    leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
+    valid_names <- !is.na(leader_names) & leader_names != ""
+    V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
   }
   
-  # Set node sizes (larger for leaders)
-  V(graph)$size <- 3  # Smaller default size
-  V(graph)$size[leader_indices] <- 6  # Larger size for leaders, but still smaller than before
-  
-  # Calculate layout with more spacing
-  layout <- layout_with_fr(graph, niter = 500, area = vcount(graph)^2.3)
-  
+  # Custom layout function
+  custom_layout <- function(graph, leader_indices) {
+    layout <- layout_with_fr(graph, niter = 500)
+    
+    for (i in 1:50) {
+      for (l1 in leader_indices) {
+        for (l2 in leader_indices) {
+          if (l1 != l2) {
+            diff <- layout[l1, ] - layout[l2, ]
+            dist <- sqrt(sum(diff^2))
+            if (dist < 0.4) {
+              layout[l1, ] <- layout[l1, ] + diff / dist * 0.1
+              layout[l2, ] <- layout[l2, ] - diff / dist * 0.1
+            }
+          }
+        }
+      }
+    }
+    return(layout)
+  }
+
+  layout <- custom_layout(graph, leader_indices)
+
+  # Adjust node sizes
+  V(graph)$size <- 3
+  V(graph)$size[leader_indices] <- 8
+
   # Plot the graph
-  par(mar = c(1, 1, 1, 1))  # Reduce margins
+  par(mar = c(1, 1, 2, 1), bg = "gray95")
   plot(graph, 
        vertex.label = V(graph)$label,
-       vertex.label.cex = 0.6,
-       vertex.label.dist = 1.5,
+       vertex.label.cex = 0.8,
+       vertex.label.dist = 1.2,
        vertex.label.color = "black",
-       edge.width = E(graph)$weight,
+       vertex.label.family = "sans",
+       edge.width = E(graph)$weight * 0.4,
+       edge.color = adjustcolor("gray40", alpha.f = 0.4),
        edge.curved = 0.2,
        layout = layout,
        rescale = TRUE,
        asp = 0,
        main = "Network Visualization")
-  
-  # Add a legend for club colors
-  if (length(club_colors) > 0) {
-    legend("bottomright", legend = names(club_colors), 
-           col = club_colors, pch = 19, pt.cex = 1, 
-           title = "Clubs", bty = "n", cex = 0.7)
+
+  grid(nx = NULL, ny = NULL, col = "gray90", lty = "dotted")
+
+  # Add arrows for leader labels
+  for (i in leader_indices) {
+    if (!is.na(V(graph)$label[i])) {
+      coords <- layout[i,]
+      arrows(coords[1], coords[2], coords[1]*1.15, coords[2]*1.15, 
+             length = 0.1, col = "black", lwd = 1.5)
+      text(coords[1]*1.2, coords[2]*1.2, V(graph)$label[i], 
+           cex = 0.9, font = 2)
+    }
   }
+
+  # Adjust legend to include leaders
+  legend_colors <- c(club_colors, "black")
+  legend_names <- c(names(club_colors), "Leaders")
+  legend_pch <- c(rep(19, length(club_colors)), 15)
+
+  legend("topright", legend = legend_names, 
+         col = legend_colors, pch = legend_pch, pt.cex = 1, 
+         title = "Clubs and Leaders", bty = "n", cex = 0.7,
+         ncol = 2, x.intersp = 0.5, y.intersp = 0.7)
 }
 ```
 
@@ -690,8 +715,10 @@ most_similar <- as_data_frame(graph, what = "edges") %>%
   head(10)
 
 most_similar <- most_similar %>%
-  left_join(mp %>% select(id, firstName, lastName, club), by = c("from" = "id")) %>%
-  left_join(mp %>% select(id, firstName, lastName, club), by = c("to" = "id"), suffix = c("_from", "_to"))
+  left_join(mp %>% select(id, firstName, lastName, club),
+            by = c("from" = "id")) %>%
+  left_join(mp %>% select(id, firstName, lastName, club),
+            by = c("to" = "id"),suffix = c("_from", "_to"))
   
 datatable(most_similar, filter = "top")
 ```
@@ -703,10 +730,15 @@ least_similar <- as_data_frame(graph, what = "edges") %>%
   head(10)
 
 least_similar <- least_similar %>%
-  left_join(mp %>% select(id, firstName, secondName, lastName, club), by = c("from" = "id")) %>%
-  left_join(mp %>% select(id, firstName, secondName, lastName, club), by = c("to" = "id"), suffix = c("_from", "_to"))
+  left_join(mp %>% select(id, firstName, secondName, lastName, club),
+            by = c("from" = "id")) %>%
+  left_join(mp %>% select(id, firstName, secondName, lastName, club),
+            by = c("to" = "id"), suffix = c("_from", "_to"))
 
 datatable(least_similar, filter = "top")
 ```
 
-# Summary
+The above tables with network visualize the connections between the MPs regarding their voting decisions in the parliament. It is left for the reader to interpret those information.
+
+# Summary 
+This project aimed to empower voters by providing a deeper understanding of political bodies through a detailed analysis of Members of Parliament and their voting patterns. By offering insights into general statistics and performing network analysis on voting behaviors, the project equips individuals with the knowledge needed to make more informed and thoughtful political decisions. Through data-driven insights, it promotes transparency and fosters greater civic engagement in the political process.
