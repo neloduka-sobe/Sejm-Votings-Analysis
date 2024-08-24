@@ -535,7 +535,7 @@ leaders_ids <- c(148, 400, 241, 133, 174, 58)
 
 ## Similarity network graphs
 ```{R}
-build_similarity_network <- function(mp_data, voting_data, threshold = 0.5) {
+build_similarity_network <- function(mp_data, voting_data, threshold = 0.6) {
   mp_ids <- unique(mp_data$id)
   n_mps <- length(mp_ids)
   
@@ -607,7 +607,7 @@ build_similarity_network <- function(mp_data, voting_data, threshold = 0.5) {
 
 ```{R}
 visualize_network <- function(graph, leaders_ids) {
-  # Get unique clubs and assign colors
+  # Color assignment (as before)
   clubs <- unique(vertex_attr(graph, "club"))
   clubs <- clubs[!is.na(clubs) & clubs != ""]
   n_clubs <- length(clubs)
@@ -626,35 +626,16 @@ visualize_network <- function(graph, leaders_ids) {
   V(graph)$label <- rep(NA, vcount(graph))
   leader_indices <- which(V(graph)$name %in% as.character(leaders_ids))
   
-  if (length(leader_indices) > 0 && "firstLastName" %in% vertex_attr_names(graph)) {
+  if (length(leader_indices) > 0 &&
+      "firstLastName" %in% vertex_attr_names(graph)) {
     leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
     valid_names <- !is.na(leader_names) & leader_names != ""
     V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
   }
   
-  # Custom layout function
-  custom_layout <- function(graph, leader_indices) {
-    layout <- layout_with_fr(graph, niter = 500)
-    
-    for (i in 1:50) {
-      for (l1 in leader_indices) {
-        for (l2 in leader_indices) {
-          if (l1 != l2) {
-            diff <- layout[l1, ] - layout[l2, ]
-            dist <- sqrt(sum(diff^2))
-            if (dist < 0.4) {
-              layout[l1, ] <- layout[l1, ] + diff / dist * 0.1
-              layout[l2, ] <- layout[l2, ] - diff / dist * 0.1
-            }
-          }
-        }
-      }
-    }
-    return(layout)
-  }
-
-  layout <- custom_layout(graph, leader_indices)
-
+  # Use layout_with_kk for better separation
+  layout <- layout_with_kk(graph)
+  
   # Adjust node sizes
   V(graph)$size <- 3
   V(graph)$size[leader_indices] <- 8
@@ -662,11 +643,7 @@ visualize_network <- function(graph, leaders_ids) {
   # Plot the graph
   par(mar = c(1, 1, 2, 1), bg = "gray95")
   plot(graph, 
-       vertex.label = V(graph)$label,
-       vertex.label.cex = 0.8,
-       vertex.label.dist = 1.2,
-       vertex.label.color = "black",
-       vertex.label.family = "sans",
+       vertex.label = NA,  # We'll add labels manually
        edge.width = E(graph)$weight * 0.4,
        edge.color = adjustcolor("gray40", alpha.f = 0.4),
        edge.curved = 0.2,
@@ -675,20 +652,28 @@ visualize_network <- function(graph, leaders_ids) {
        asp = 0,
        main = "Network Visualization")
 
+  # Add subtle grid
   grid(nx = NULL, ny = NULL, col = "gray90", lty = "dotted")
 
-  # Add arrows for leader labels
-  for (i in leader_indices) {
-    if (!is.na(V(graph)$label[i])) {
-      coords <- layout[i,]
-      arrows(coords[1], coords[2], coords[1]*1.15, coords[2]*1.15, 
+  # Custom label placement for leaders
+  for (i in seq_along(leader_indices)) {
+    idx <- leader_indices[i]
+    if (!is.na(V(graph)$label[idx])) {
+      angle <- 2 * pi * i / length(leader_indices)
+      x_offset <- cos(angle) * 0.15
+      y_offset <- sin(angle) * 0.15
+      
+      coords <- layout[idx,]
+      arrows(coords[1], coords[2], 
+             coords[1] + x_offset, coords[2] + y_offset, 
              length = 0.1, col = "black", lwd = 1.5)
-      text(coords[1]*1.2, coords[2]*1.2, V(graph)$label[i], 
+      text(coords[1] + x_offset * 1.2, coords[2] + y_offset * 1.2, 
+           V(graph)$label[idx], 
            cex = 0.9, font = 2)
     }
   }
 
-  # Adjust legend to include leaders
+  # Adjust legend
   legend_colors <- c(club_colors, "black")
   legend_names <- c(names(club_colors), "Leaders")
   legend_pch <- c(rep(19, length(club_colors)), 15)
