@@ -38,7 +38,7 @@ clubs <- read.csv(clubs_path)
 
 # Translating the data
 
-```{R}
+```{R, eval=F}
 API_KEY <- Sys.getenv("DEEPL_API")
 # educationLevel
 mp$educationLevel = replace(mp$educationLevel,
@@ -606,14 +606,17 @@ build_similarity_network <- function(mp_data, voting_data, threshold = 0.6) {
 ```
 
 ```{R}
-visualize_network <- function(graph, leaders_ids) {
-  # Color assignment (as before)
+library(igraph)
+library(RColorBrewer)
+
+# Function to assign colors to clubs
+assign_club_colors <- function(graph) {
   clubs <- unique(vertex_attr(graph, "club"))
   clubs <- clubs[!is.na(clubs) & clubs != ""]
   n_clubs <- length(clubs)
   
   if (n_clubs > 0) {
-    color_palette <- RColorBrewer::brewer.pal(max(3, min(n_clubs, 9)), "Set1")
+    color_palette <- brewer.pal(max(3, min(n_clubs, 9)), "Set1")
     club_colors <- setNames(color_palette[1:min(n_clubs, 9)], clubs)
     V(graph)$color <- club_colors[vertex_attr(graph, "club")]
   } else {
@@ -622,28 +625,28 @@ visualize_network <- function(graph, leaders_ids) {
   
   V(graph)$color[is.na(V(graph)$color) | V(graph)$color == ""] <- "gray"
   
-  # Set node labels (only for leaders)
+  return(list(graph = graph, club_colors = club_colors))
+}
+
+# Function to set leader labels
+set_leader_labels <- function(graph, leaders_ids) {
   V(graph)$label <- rep(NA, vcount(graph))
   leader_indices <- which(V(graph)$name %in% as.character(leaders_ids))
   
-  if (length(leader_indices) > 0 &&
-      "firstLastName" %in% vertex_attr_names(graph)) {
+  if (length(leader_indices) > 0 && "firstLastName" %in% vertex_attr_names(graph)) {
     leader_names <- vertex_attr(graph, "firstLastName")[leader_indices]
     valid_names <- !is.na(leader_names) & leader_names != ""
     V(graph)$label[leader_indices[valid_names]] <- leader_names[valid_names]
   }
   
-  # Use layout_with_kk for better separation
-  layout <- layout_with_kk(graph)
-  
-  # Adjust node sizes
-  V(graph)$size <- 3
-  V(graph)$size[leader_indices] <- 8
+  return(list(graph = graph, leader_indices = leader_indices))
+}
 
-  # Plot the graph
+# Function to plot the graph
+plot_network <- function(graph, layout, leader_indices) {
   par(mar = c(1, 1, 2, 1), bg = "gray95")
   plot(graph, 
-       vertex.label = NA,  # We'll add labels manually
+       vertex.label = NA,
        edge.width = E(graph)$weight * 0.4,
        edge.color = adjustcolor("gray40", alpha.f = 0.4),
        edge.curved = 0.2,
@@ -651,11 +654,11 @@ visualize_network <- function(graph, leaders_ids) {
        rescale = TRUE,
        asp = 0,
        main = "Network Visualization")
-
-  # Add subtle grid
   grid(nx = NULL, ny = NULL, col = "gray90", lty = "dotted")
+}
 
-  # Custom label placement for leaders
+# Function to add leader labels
+add_leader_labels <- function(graph, layout, leader_indices) {
   for (i in seq_along(leader_indices)) {
     idx <- leader_indices[i]
     if (!is.na(V(graph)$label[idx])) {
@@ -672,16 +675,45 @@ visualize_network <- function(graph, leaders_ids) {
            cex = 0.9, font = 2)
     }
   }
+}
 
-  # Adjust legend
+# Function to add legend
+add_legend <- function(club_colors) {
   legend_colors <- c(club_colors, "black")
   legend_names <- c(names(club_colors), "Leaders")
   legend_pch <- c(rep(19, length(club_colors)), 15)
-
   legend("topright", legend = legend_names, 
          col = legend_colors, pch = legend_pch, pt.cex = 1, 
          title = "Clubs and Leaders", bty = "n", cex = 0.7,
          ncol = 2, x.intersp = 0.5, y.intersp = 0.7)
+}
+
+# Main visualization function
+visualize_network <- function(graph, leaders_ids) {
+  # Assign colors and set labels
+  color_result <- assign_club_colors(graph)
+  graph <- color_result$graph
+  club_colors <- color_result$club_colors
+  
+  label_result <- set_leader_labels(graph, leaders_ids)
+  graph <- label_result$graph
+  leader_indices <- label_result$leader_indices
+  
+  # Adjust node sizes
+  V(graph)$size <- 3
+  V(graph)$size[leader_indices] <- 8
+  
+  # Calculate layout
+  layout <- layout_with_kk(graph)
+  
+  # Plot the graph
+  plot_network(graph, layout, leader_indices)
+  
+  # Add leader labels
+  add_leader_labels(graph, layout, leader_indices)
+  
+  # Add legend
+  add_legend(club_colors)
 }
 ```
 
@@ -706,21 +738,6 @@ most_similar <- most_similar %>%
             by = c("to" = "id"),suffix = c("_from", "_to"))
   
 datatable(most_similar, filter = "top")
-```
-
-## Least similar voters
-```{R}
-least_similar <- as_data_frame(graph, what = "edges") %>%
-  arrange(weight) %>%
-  head(10)
-
-least_similar <- least_similar %>%
-  left_join(mp %>% select(id, firstName, secondName, lastName, club),
-            by = c("from" = "id")) %>%
-  left_join(mp %>% select(id, firstName, secondName, lastName, club),
-            by = c("to" = "id"), suffix = c("_from", "_to"))
-
-datatable(least_similar, filter = "top")
 ```
 
 The above tables with network visualize the connections between the MPs regarding their voting decisions in the parliament. It is left for the reader to interpret those information.
