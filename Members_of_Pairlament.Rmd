@@ -38,7 +38,7 @@ clubs <- read.csv(clubs_path)
 
 # Translating the data
 
-```{R, eval=F}
+```{R}
 API_KEY <- Sys.getenv("DEEPL_API")
 # educationLevel
 mp$educationLevel = replace(mp$educationLevel,
@@ -606,9 +606,6 @@ build_similarity_network <- function(mp_data, voting_data, threshold = 0.6) {
 ```
 
 ```{R}
-library(igraph)
-library(RColorBrewer)
-
 # Function to assign colors to clubs
 assign_club_colors <- function(graph) {
   clubs <- unique(vertex_attr(graph, "club"))
@@ -681,7 +678,7 @@ add_leader_labels <- function(graph, layout, leader_indices) {
 add_legend <- function(club_colors) {
   legend_colors <- c(club_colors, "black")
   legend_names <- c(names(club_colors), "Leaders")
-  legend_pch <- c(rep(19, length(club_colors)), 15)
+  legend_pch <- c(rep(19, length(club_colors)), 19)  # Changed to 19 for leaders
   legend("topright", legend = legend_names, 
          col = legend_colors, pch = legend_pch, pt.cex = 1, 
          title = "Clubs and Leaders", bty = "n", cex = 0.7,
