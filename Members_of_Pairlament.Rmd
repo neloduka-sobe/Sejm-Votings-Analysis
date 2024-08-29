@@ -188,8 +188,6 @@ mp <- mp %>%
   mutate(birthDate = as_date(birthDate))
 ```
 
-
-
 # What is the club distribution in the parliament?
 
 ```{R}
@@ -329,8 +327,7 @@ We are dropping yes column, as it contains number of yes `votes`, `votes.firstNa
 
 ```{R}
 # Yes/No votings
-y_n_votings <- y_n_votings %>%
-  select(
+y_n_votings <- y_n_votings %>% select(
     !(c(yes,
     notParticipating,
     votes.firstName,
@@ -434,7 +431,7 @@ y_n_votings <- y_n_votings %>%
 
 votings_per_day_time <- y_n_votings %>%
   group_by(day_of_week, hour) %>%
-  summarise(number_of_votings = n()) %>%
+  summarise(number_of_votings = max(votingNumber)) %>%
   ungroup()
 
 ggplot(votings_per_day_time, aes(x = hour, y = day_of_week,
@@ -498,6 +495,7 @@ datatable(least_voting, filter = "top")
 # Network Analysis of the Data
 
 Let's create a function to filter data for a specific MP
+
 ```{R}
 filter_mp_data <- function(mp_id, mp_data, voting_data) {
   mp <- mp_data[mp_data$id == mp_id, ]
@@ -509,6 +507,7 @@ filter_mp_data <- function(mp_id, mp_data, voting_data) {
 ```
 
 Let's create a function to calculate the similarity of two MPs
+
 ```{R}
 calculate_similarity <- function(mp1_votes, mp2_votes) {
   merged_votes <- merge(mp1_votes, mp2_votes, 
@@ -529,11 +528,13 @@ calculate_similarity <- function(mp1_votes, mp2_votes) {
 ```
 
 We want to create the networks around leaders of the clubs
+
 ```{R}
 leaders_ids <- c(148, 400, 241, 133, 174, 58)
 ```
 
 ## Similarity network graphs
+
 ```{R}
 build_similarity_network <- function(mp_data, voting_data, threshold = 0.6) {
   mp_ids <- unique(mp_data$id)
@@ -715,6 +716,7 @@ visualize_network <- function(graph, leaders_ids) {
 ```
 
 ## Visualization
+
 ```{R}
 graph <- build_similarity_network(mp, y_n_votings)
 
@@ -722,6 +724,7 @@ visualize_network(graph, leaders_ids)
 ```
 
 ## Most similar voters
+
 ```{R}
 mp <- mp %>% mutate(id = as.character(id))
 most_similar <- as_data_frame(graph, what = "edges") %>%
@@ -739,5 +742,6 @@ datatable(most_similar, filter = "top")
 
 The above tables with network visualize the connections between the MPs regarding their voting decisions in the parliament. It is left for the reader to interpret those information.
 
-# Summary 
+# Summary
+
 This project aimed to empower voters by providing a deeper understanding of political bodies through a detailed analysis of Members of Parliament and their voting patterns. By offering insights into general statistics and performing network analysis on voting behaviors, the project equips individuals with the knowledge needed to make more informed and thoughtful political decisions. Through data-driven insights, it promotes transparency and fosters greater civic engagement in the political process.
